@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<group title="OSC comms dynamixel test">
+	<!-- Modules -->
+	<module
+	  class = "Dynamixel"
+	  name = "Dynamixel"
+	  device  = "/dev/cu.usbserial-A600cUuc"
+	  servo_id = "1 2 3"
+	  index_mode = "indirect"
+	  printf_info ="none"
+	  use_feedback ="true"
+	  baud_rate = "1000000"
+	  angle_unit = "degrees"
+	/>
+	<module
+		class="OscComm"
+		name="OscCommInstance"
+		channel_1_name = "/pos"
+		channel_2_name = "/ctrl"
+		send_port = "12002"
+		receive_port = "12001"
+		debug = "false"
+	/>
+	<module
+		class="Scale"
+		name="Scale"
+		factor="9"
+	/>
+	<!--Connections-->	
+	<connection sourcemodule = "Dynamixel" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "OscCommInstance" target = "INPUT1" />
+	<connection sourcemodule = "Dynamixel" source = "FEEDBACK_PRESENT_SPEED" targetmodule = "OscCommInstance" target = "INPUT2" />
+
+	<connection sourcemodule = "OscCommInstance" source = "OUTPUT1" targetmodule = "Dynamixel" target = "GOAL_POSITION" />
+	<connection sourcemodule = "OscCommInstance" source = "OUTPUT2" targetmodule = "Scale" target = "INPUT" />
+
+	<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "Dynamixel" target = "TORQUE_LIMIT" />
+
+	<!-- View -->
+		<view>
+			<object class="Plot" 
+				module="OscCommInstance" 
+				source="OUTPUT1" 
+				x="0" y="0" w="1" h="1"
+				min="0"
+				max="360"
+				select="0 1 2"
+				color="red green blue"
+			/>
+			
+			<object class="Plot" 
+				module="OscCommInstance" 
+				source="OUTPUT2" 
+				x="1" y="0" w="1" h="1"
+				min="0"
+				max="1"
+				select="0 1 2"
+				color="red green blue"
+			/>
+		</view>
+
+</group>

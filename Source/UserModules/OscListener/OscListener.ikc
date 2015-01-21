@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<group name="OscListener" description="minimal example module">
+
+	<description type="text">
+		Module which listens for Open Sound Control messages on a given port.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OscListener"
+			name="OscListener"
+			host="127.0.0.1"
+			port = "12000"
+			addresses = "/1/faderA"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="host" type="string" default="127.0.0.1" description="The host to listen to" />
+	<parameter name="port" type="int" default="12000" description="The port to listen to" />
+	<parameter name="adresses" type="string" default="" description="The adresses to listen to" />
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<!--input name="INPUT" description="The first input" /-->
+
+	<output name="OUTPUT" description="The first output" size="1" />
+
+	<module class="OscListener" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>OscListener.h</file>
+   		<file>OscListener.cc</file>
+   		<file>OscListener.ikc</file>
+   </files>
+
+</group>
+

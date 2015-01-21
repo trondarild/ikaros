@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+
+<group title="Example">
+	<!-- Modules -->
+	<module
+	  class = "Dynamixel"
+	  name = "Dynamixel"
+	  device  = "/dev/cu.usbserial-A600cUuc"
+	  servo_id = "1 2 3"
+	  index_mode = "indirect"
+	  printf_info ="none"
+	  use_feedback ="true"
+	  baud_rate = "1000000"
+	  angle_unit = "degrees"
+	/>
+
+	<module
+		class="Differentiator"
+		name="Differentiator"
+	/>
+	<module
+		class = "MovingAverage"
+		name = "MovingAverage"
+		buffer_length = "10"
+	/>	
+	<module
+		class="Clamp"
+		name="Clamp"
+		min_out = "-1"
+		max_out = "1"
+		tolerance = "0.1"
+		offset_in = "0"
+		tristate="true"
+		debug = "false"
+	/>
+	<module
+		class = "TriggerAndHold"
+		name = "TriggerAndHold"
+		debug = "false"
+	/>
+	<module
+		class = "Scale"
+		name = "Scale"
+		factor = "0.09"
+	/>
+	<module
+			class="OscComm"
+			name="OscComm"
+			channel_1_name = "/pos"
+			channel_2_name = "/ctrl"
+			send_port = "12000"
+			receive_port = "12001"
+			debug = "false"
+		/>
+	<!--Connections-->	
+		<!--To Dynamixel-->
+		<connection sourcemodule = "OscComm" source = "OUTPUT1" targetmodule = "Dynamixel" target = "GOAL_POSITION" />
+		<connection sourcemodule = "OscComm" source = "OUTPUT2" targetmodule = "Dynamixel" target = "TORQUE_LIMIT" />
+
+		<!--To differentiator-->
+		<connection sourcemodule = "Dynamixel" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "Differentiator" target = "INPUT" />
+
+		<!--To Moving avg-->
+		<connection sourcemodule = "Differentiator" source = "OUTPUT" targetmodule = "MovingAverage" target = "INPUT" />
+
+		<!--To Scale-->
+		<connection sourcemodule = "MovingAverage" source = "OUTPUT" targetmodule = "Scale" target = "INPUT" />
+
+		<!--To OscComm-->
+		<connection sourcemodule = "TriggerAndHold" source = "OUTPUT" targetmodule = "OscComm" target = "INPUT1" />
+		<connection sourcemodule = "Scale" source = "OUTPUT" targetmodule = "OscComm" target = "INPUT2" />
+
+		<!--To Clamp-->
+		<connection sourcemodule = "MovingAverage" source = "OUTPUT" targetmodule = "Clamp" target = "INPUT" />
+
+		<!--To TriggerAndHold-->
+		<connection sourcemodule = "Clamp" source = "OUTPUT" targetmodule = "TriggerAndHold" target = "TRIGGER" />
+		<connection sourcemodule = "Dynamixel" source = "FEEDBACK_PRESENT_POSITION" targetmodule = "TriggerAndHold" target = "INPUT" />
+
+	<!-- View -->
+		<view>
+			<!--First line-->
+			<object class="Plot " 
+				module="Dynamixel" 
+				source="FEEDBACK_PRESENT_POSITION" 
+				x="0" y="0" w="1" h="1"
+				min="0"
+				max="360"
+				select="0,1,2"
+				color="green,blue,red"
+			/>
+			<object class="Plot " 
+				module="TriggerAndHold" 
+				source="OUTPUT" 
+				x="1" y="0" w="1" h="1"
+				min="0"
+				max="360"
+				select="0,1,2"
+				color="green,blue,red"
+			/>
+
+			<!--Second line-->
+			<object class="Plot " 
+				module="MovingAverage" 
+				source="OUTPUT" 
+				x="0" y="1" w="1" h="1"
+				min="0"
+				max="1"
+			/>
+
+			<!--Third line-->
+			<object class="Plot " 
+				module="OscComm" 
+				source="OUTPUT1" 
+				x="0" y="2" w="1" h="1"
+				min="0"
+				max="360"
+				select="0,1,2"
+				color="green,blue,red"
+			/>
+			<object class="Plot " 
+				module="OscComm" 
+				source="OUTPUT2" 
+				x="1" y="2" w="1" h="1"
+				min="0"
+				max="360"
+				select="0,1,2"
+				color="green,blue,red"
+			/>
+
+
+		</view>
+
+</group>

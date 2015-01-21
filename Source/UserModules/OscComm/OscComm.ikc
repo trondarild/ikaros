@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<group name="OscComm" description="Sends and receive osc messages">
+
+	<description type="text">
+		Module that can be used as a start for a new module.
+		Simply change all occurrences of "OscComm" to the name of your new module in
+		OscComm.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
+		in the new code and documentation. This module is located in the
+		UserModules directory.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="OscComm"
+			name="OscComm"
+			channel_1_name = "pos"
+			channel_2_name = "ctrl"
+			send_port = "12000"
+			receive_port = "12001"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="channel_1_name" type="string" default="pos" description="Name of osc channel 1" />
+	<parameter name="channel_2_name" type="string" default="ctrl" description="Name of osc channel 2" />
+	<parameter name="send_port" type="int" default="12000" description="port to send on" />
+	<parameter name="receive_port" type="int" default="12001" description="port to receive on" />
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" />
+
+	<output name="OUTPUT1" description="The first output" size_set="INPUT1" />
+	<output name="OUTPUT2" description="The second output" size_set="INPUT1" />
+
+	<module class="OscComm" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>OscComm.h</file>
+   		<file>OscComm.cc</file>
+   		<file>OscComm.ikc</file>
+   </files>
+
+</group>
+

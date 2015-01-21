@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+
+<group title="OscComm Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "2"
+			data  = "1 2 3"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.01"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen"
+		  type        =   "sin"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class="OscComm"
+			name="OscCommInstance"
+			channel_1_name = "/pos"
+			channel_2_name = "/ctrl"
+			send_port = "12002"
+			receive_port = "12001"
+			debug = "false"
+		/>
+		
+        <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "OscCommInstance" target = "INPUT1" />
+        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "OscCommInstance" target = "INPUT2" />
+
+		<view name="View">
+			<object class="Plot " 
+				module="SquareGen" 
+				source="OUTPUT" 
+				x="0" y="0" w="1" h="1"
+				min="0"
+				max="2"
+			/>
+			<object class="Plot " 
+				module="OscCommInstance" 
+				source="OUTPUT1" 
+				x="0" y="1" w="1" h="1"
+				min="0"
+				max="2"
+				select="0"
+				colors="red"
+			/>
+			<object class="Plot " 
+				module="OscCommInstance" 
+				source="OUTPUT2" 
+				x="1" y="1" w="1" h="1"
+				min="0"
+				max="2"
+				select="0"
+				colors="green"
+			/>
+		</view>
+
+</group>
+ 
