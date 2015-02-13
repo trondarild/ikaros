@@ -387,7 +387,7 @@ namespace ikaros
     void        destroy_jpeg(char * jpeg);
 
     void        decode_jpeg(float ** matrix, int sizex, int sizey, char * data, long int size);
-    void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);
+    void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);    
 
     bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
     void        jpeg_decode(float ** matrix, int sizex, int sizey, char * data, long int size); // NOT IMPLEMENTED
@@ -405,6 +405,12 @@ namespace ikaros
 
     void        draw_circle(float ** image, int sizex, int sizey, int x, int y, int radius, float color);
     void        draw_circle(float ** red, float ** green, float ** blue, int sizex, int sizey, int x, int y, int radius, float r, float g, float b);
+
+    // linear algebra - TAT
+    int eigs(float **result, float **matrix, int sizex, int sizey);
+    void sprand(float *array, int size, float fillfactor);
+    void gen_weight_matrix(float **returnmat, int dim, float fillfactor);
+
 }
 
 #endif

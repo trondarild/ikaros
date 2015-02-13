@@ -26,6 +26,9 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <Accelerate/Accelerate.h>	// lapack headers for linear algebra
+#include <vector>
+#include <random>
 
 //#include <malloc/malloc.h> // FIXME: Remove
 
@@ -4285,6 +4288,96 @@ namespace ikaros
         draw_circle(green, sizex, sizey, x, y, radius, g);
         draw_circle(blue, sizex, sizey, x, y, radius, b);
     }
+
+    //
+    // linear algebra - TAT
+    //
     
+    int 		 
+    eigs(float **result, float **matrix, int sizex, int sizey)
+	 {
+	    char jobvl = 'N';
+	    char jobvr = 'V';
+	    int n = sizex;  //lapack wants num of cols
+
+	    // sgeev call seems to change original matrix, so make copy
+	    float **a = create_matrix(sizex, sizey);
+	    copy_matrix(a, matrix, sizex, sizey); 
+	    int lda = max(sizex, sizey); // leading dimension of array
+	    
+	    float *wr = result[0];      //real part output of eigenvalues - want this
+	    float *wi = new float[n];   //img part output
+	    
+	    float *vl = new float[n];   // left eigenvectors - not used
+	    int ldvl = n;               // not used
+	    float *vr = new float[n];   // right eigenvectors - not used
+	    int ldvr = n;
+	    
+	    float work[3*n];
+	    int lwork = 3*n + 32;
+	    int info;
+	    
+	    // call to lapack 
+	    // sgeev = single - general matrix - eigen vector
+	    sgeev_(&jobvl, &jobvr, &n,
+	           a[0], &lda, wr, wi,
+	           vl, &ldvl, vr, &ldvr,
+	           work, & lwork, &info);
+	    
+	    delete[] wi;
+	    delete[] vl;
+	    delete[] vr;
+	    destroy_matrix(a);
+	    return info;
+	}
+
+	// generates a sparse random matrix with values drawn from
+	// the normal distribution, centered at 0.5 
+	void
+	sprand(float *array, int size, float fillfactor)
+	{
+	    std::default_random_engine generator;
+	    // normal distro with mean = 0.5 and
+	    std::normal_distribution<float> distribution(0.5,0.5);
+
+	    int numfilledelements = (int)size*fillfactor;
+	    std::vector<int> indeces;
+	    indeces.reserve(numfilledelements);
+	    
+	    // generate a list of random ints for indeces
+	    // and add a number from normal distribution
+	    for(int i=0; i<numfilledelements; i++){
+	        std::vector<int>::iterator it;
+	        int index = rand() % size;
+	        it = std::find(indeces.begin(), indeces.end(), index);
+	        if (it == indeces.end()){
+	            indeces.push_back(index);
+	            float value=-1;
+	            do {
+	                value = distribution(generator);
+	            } while ((value<0.0)||(value>1.0));
+	            array[index] = value;
+	        }
+	    }
+	}
+	
+	void 
+	gen_weight_matrix(float **returnmat, int dim, float fillfactor)
+	{
+	    float **eigenvals = create_matrix(dim,1);
+	    float spectralradius=0;
+	    int maxiter=10;
+	    do{
+	        sprand(returnmat[0], dim*dim, fillfactor);
+	        //print_matrix("ikaros::::sprand", returnmat, dim, dim);
+	        int info = eigs(eigenvals, returnmat, dim, dim);
+	        //print_matrix("ikaros::::eigs", eigenvals, dim, 1);
+	        spectralradius = max(abs(eigenvals, dim, 1), dim, 1);  
+	        //printf("ikaros::::spectralrad=%f\n", spectralradius);  
+	    }while(spectralradius==0 && (maxiter-- > 0));
+	    
+	    //print_matrix("ikaros::::before", returnmat, dim, dim);
+	    returnmat = multiply(returnmat, 1.f/spectralradius, dim, dim);
+	}
 }
 
