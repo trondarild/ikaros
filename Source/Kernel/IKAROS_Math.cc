@@ -4308,25 +4308,35 @@ namespace ikaros
 	    float *wr = result[0];      //real part output of eigenvalues - want this
 	    float *wi = new float[n];   //img part output
 	    
-	    float *vl = new float[n];   // left eigenvectors - not used
+	    float *vl = new float[n*n];   // left eigenvectors - not used
 	    int ldvl = n;               // not used
-	    float *vr = new float[n];   // right eigenvectors - not used
+	    float *vr = new float[n*n];   // right eigenvectors - not used
 	    int ldvr = n;
 	    
-	    float work[3*n];
-	    int lwork = 3*n + 32;
+	    int lwork = -1; // set to -1 to calc opt workspace size
+	    float lopt; // will contain size of workspace
+
 	    int info;
 	    
-	    // call to lapack 
-	    // sgeev = single - general matrix - eigen vector
+	    // call to lapack sgeev = single-general matrix-eigen vector
 	    sgeev_(&jobvl, &jobvr, &n,
 	           a[0], &lda, wr, wi,
 	           vl, &ldvl, vr, &ldvr,
-	           work, & lwork, &info);
+	           &lopt, &lwork, &info);
 	    
+	    lwork = (int)lopt;
+	    float *work = new float[lwork];
+
+	    sgeev_(&jobvl, &jobvr, &n,
+	           a[0], &lda, wr, wi,
+	           vl, &ldvl, vr, &ldvr,
+	           work, &lwork, &info);
+
 	    delete[] wi;
 	    delete[] vl;
 	    delete[] vr;
+	    delete[] work;
+	    
 	    destroy_matrix(a);
 	    return info;
 	}
@@ -4346,7 +4356,7 @@ namespace ikaros
 	    
 	    // generate a list of random ints for indeces
 	    // and add a number from normal distribution
-	    for(int i=0; i<numfilledelements; i++){
+	    for (int i=0; i<numfilledelements; i++){
 	        std::vector<int>::iterator it;
 	        int index = rand() % size;
 	        it = std::find(indeces.begin(), indeces.end(), index);
@@ -4367,17 +4377,26 @@ namespace ikaros
 	    float **eigenvals = create_matrix(dim,1);
 	    float spectralradius=0;
 	    int maxiter=10;
-	    do{
-	        sprand(returnmat[0], dim*dim, fillfactor);
+	    do {
+	        sprand(returnmat[0], dim*(dim), fillfactor);
 	        //print_matrix("ikaros::::sprand", returnmat, dim, dim);
 	        int info = eigs(eigenvals, returnmat, dim, dim);
 	        //print_matrix("ikaros::::eigs", eigenvals, dim, 1);
 	        spectralradius = max(abs(eigenvals, dim, 1), dim, 1);  
 	        //printf("ikaros::::spectralrad=%f\n", spectralradius);  
-	    }while(spectralradius==0 && (maxiter-- > 0));
+	    } while(spectralradius==0 && (maxiter-- > 0));
 	    
 	    //print_matrix("ikaros::::before", returnmat, dim, dim);
 	    returnmat = multiply(returnmat, 1.f/spectralradius, dim, dim);
+	}
+
+	float *
+	tanh(float *array, int size)
+	{
+	    for (int i=0; i<size; i++) {
+	        array[i] = tanhf(array[i]);
+	    }
+	    return array;
 	}
 }
 
