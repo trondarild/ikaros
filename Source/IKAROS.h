@@ -1,8 +1,8 @@
 //
 //  IKAROS.h        Kernel code for the IKAROS project
-//					Version 1.4
 //
-//    Copyright (C) 2001-2012  Christian Balkenius
+//
+//    Copyright (C) 2001-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -166,12 +166,14 @@ public:
 class Module_IO
 {
 public:
-    int                 sizex;        // no of columns    *** temporarily made public for WebUI ***
+    int                 sizex;        // no of columns    *** made public for WebUI ***
     int                 sizey;        // no of rows
     float        ***    matrix;       // matrix version of data; array of pointers to columns; Array of matrixes in 0.8.0 for delays
+    bool                optional;
+    bool                allow_multiple;
 private:
-    Module_IO(Module_IO * nxt, Module * m, const char * n, int x=unknown_size, int y=1);      // Create output from module m with name n and size x and y
-    ~Module_IO();																		// Deletes the data
+    Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt=false, bool multiple=true);      // Create output from module m with name n and size x and y (default x=unkwon_size, y=1)
+    ~Module_IO();                                                                                                   // Deletes the data
     
     void                Allocate();
     void                SetSize(int x, int y=1);
@@ -181,7 +183,7 @@ private:
     Module_IO   *   next;
     Module      *   module;
     const char  *   name;
-    float       **  data;        // Array in 0.8.0 for delays
+    float       **  data;        // Array for delays
     int             size;        // should equal sizex*sizey
     int             max_delay;   // maximum number of arrays/matrices
     
@@ -234,8 +236,8 @@ public:
     void            Notify(int msg, const char *format, ...);    // Send message to the kernel and print a massage to the user
     
 protected:
-    void            AddInput(const char * name);
-    void            AddOutput(const char * name, int size_x=unknown_size, int size_y=1);    // Allocate output
+    void            AddInput(const char * name, bool optional=false, bool allow_multiple_connections=true);
+    void            AddOutput(const char * name, int size_x=unknown_size, int size_y=1, bool optional=false);    // Allocate output
     void            AddIOFromIKC();
     void            SetOutputSize(const char * name, int size_x, int size_y=1);    // Set the output size for an output of unknown size; it is an error to change the output size
     
@@ -256,7 +258,7 @@ protected:
     bool            GetBoolValue(const char * n, bool d=false);        // Search through XML for parameter and return its value as a float or default value d if not found
     int             GetIntValueFromList(const char * n, const char * list=NULL);    // Search through XML for parameter and then search list for the index of the value in the parameter; return 0 if not foun
     float *         GetArray(const char * n, int size);		// Search through XML for parameter and return its value as an array
-    float **        GetMatrix(const char * n, int sizex, int sizey);	// Search through XML for parameter and return its value as a matrix
+    float **        GetMatrix(const char * n, int & sizex, int & sizey);	// Search through XML for parameter and return its value as a matrix
     int *           GetIntArray(const char * n, int & size);
 
     // Bind values to names and get values from XML tree if possible
@@ -265,8 +267,11 @@ protected:
     void            Bind(int & v, const char * n);                          // Bind int OR list value to name
     void            Bind(bool & v, const char * n);                         // Bind boolean
     void            Bind(float * & v, int size, const char * n);              // Bind array
-    void            Bind(float ** & v, int sizex, int sizey, const char * n); // Bind matrix
-    
+    void            Bind(float ** & v, int & sizex, int & sizey, const char * n); // Bind matrix; also gets the matrix size
+
+
+    void            SetParameter(const char * parameter_name, int x, int y, float value);
+
     XMLElement *    xml;
     
 private:
@@ -392,12 +397,16 @@ public:
     
     void        AddModule(Module * m);                      // Add a module to the simulation
     Module *    GetModule(const char * n);                  // Find a module based on its name
+    Module *    GetModuleFromFullName(const char * n);
     
 	const char *    GetBatchValue(const char * n);          // Get a value from a batch element with the target n and the current batch rank
     
+    const char * GetXMLAttribute(XMLElement * e, const char * attribute);   // This function implements inheritance and checks batc and command line values
     bool        GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name);
     bool        GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
-    
+    bool        GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * source_module_name, const char * source_name);
+    void        SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value);
+
     int         Connect(Module_IO * sio, Module_IO * tio, const char * delay, int extra_delay = 0);
     int         Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char * tm_name, const char * t_name, const char * delay, int extra_delay = 0);
     
@@ -423,6 +432,7 @@ public:
     void        ListScheduling();
     void        ListThreads();
     void        ListClasses();
+    void        ListWarningsAndErrors();
     void        ListProfiling();
     void        PrintTiming();           // Print total timing information
     
@@ -462,7 +472,8 @@ private:
     void        CheckInputs();                                // Check that memory for all connected inputs have been allocated
     void        CheckOutputs();                               // Check that all outputs are correctly set
     
-    bool        Preceedes(Module * a, Module * b);
+    bool        Precedes(Module * a, Module * b);
+    void        DetectCycles();                                 // Find zero-delay loops in the connections
     void        SortModules();                                // Sort modules in precedence order
     void        CalculateDelays();                            // Calculate the maximum delay from each output
     

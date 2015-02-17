@@ -6,14 +6,14 @@
 	    <column name = "OUT"/>
 	</module>
 	
-	<module class = "Sum" name = "SUM" />
+	<module class = "Summation" name = "Summation" />
 
 	<connection sourcemodule = "DATA"   source = "A"
-		    targetmodule = "SUM"    target = "INPUT1"/>
+		    targetmodule = "Summation"    target = "INPUT1"/>
 	
 	<connection sourcemodule = "DATA"   source = "B"
-		    targetmodule = "SUM"    target = "INPUT2"/>
+		    targetmodule = "Summation"    target = "INPUT2"/>
 	
-	<connection sourcemodule = "SUM"    source = "OUTPUT"
+	<connection sourcemodule = "Summation"    source = "OUTPUT"
 		    targetmodule = "OUT"    target = "OUT"/>
 </group>

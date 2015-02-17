@@ -1,6 +1,6 @@
 //
-//	Sum.cc		This file is a part of the IKAROS project
-//              Old example for version 1.1 and earlier.
+//	Summation.cc		This file is a part of the IKAROS project
+//                      Old example for version 1.1 and earlier.
 //
 //    Copyright (C) 2001-2002 Jan Moren
 //
@@ -22,15 +22,15 @@
 //
 //	2003-01-14 Updated for the new simulator
 
-#include "Sum.h"
+#include "Summation.h"
 
-Module * Sum::Create(Parameter * p)
+Module * Summation::Create(Parameter * p)
 {
-    return new Sum(p);
+    return new Summation(p);
 }
 
 
-Sum::Sum(Parameter * p): Module(p)
+Summation::Summation(Parameter * p): Module(p)
 {
 
     // AddInput here declares two inputs for the module. These are the same
@@ -53,7 +53,7 @@ Sum::Sum(Parameter * p): Module(p)
 // It is called repeatedly until all sizes for all modules are fixed or until
 // Ikaros discovers it is not possible to set a consistent set of data sizes.
 
-void Sum::SetSizes()
+void Summation::SetSizes()
 {
     // find out the sizes of the inputs.
 
@@ -67,7 +67,7 @@ void Sum::SetSizes()
     if (in1 != unknown_size && in2 != unknown_size){
         if (in1!=in2)
         {
-            Notify(msg_fatal_error, "Sum: the input sizes must be equal: INPUT1 = %d\t INPUT2 = %d\n", in1, in2);
+            Notify(msg_fatal_error, "Summation: the input sizes must be equal: INPUT1 = %d\t INPUT2 = %d\n", in1, in2);
             return;
         }
 
@@ -79,7 +79,7 @@ void Sum::SetSizes()
 }
 
 
-void Sum::Init()
+void Summation::Init()
 {
     input1 = NULL;
     input2 = NULL;
@@ -105,16 +105,16 @@ void Sum::Init()
 }
 
 
-Sum::~Sum()
+Summation::~Summation()
 {
 }
 
 
-void Sum::Tick()
+void Summation::Tick()
 {
     int i;
 
-    // Sum in action. input1 and input2 are pointers to the current input
+    // Summation in action. input1 and input2 are pointers to the current input
     // vectors and output points to the output vector that will be sent
     // along to whatever modules it is connected to.
 
@@ -123,5 +123,5 @@ void Sum::Tick()
     }
 }
 
-static InitClass init("Sum", &Sum::Create, "Source/Modules/Examples/Sum/");
+static InitClass init("Summation", &Summation::Create, "Source/Modules/Examples/Summation/");
 

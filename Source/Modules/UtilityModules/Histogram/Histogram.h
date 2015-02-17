@@ -1,8 +1,8 @@
 //
-//		Shift.h		This file is a part of the IKAROS project
-//					A module that shifts a matrix
+//    Histogram.h   This file is a part of the IKAROS project
+//					
 //
-//    Copyright (C) 2004  Christian Balkenius
+//    Copyright (C) 2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -19,37 +19,35 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef SHIFT
-#define SHIFT
+#ifndef HISTOGRAM_
+#define HISTOGRAM_
 
 #include "IKAROS.h"
 
 
-
-class Shift: public Module
+class Histogram: public Module
 {
 public:
+    static Module * Create(Parameter * p) { return new Histogram(p); }
 
-    Shift(Parameter * p) : Module(p) {}
-    virtual ~Shift() {}
+    int         size; // no of bins
 
-    static Module * Create(Parameter * p) { return new Shift(p); }
+    float       minimum;
+    float       maximum;
 
+    bool        ignore_outliers;
+
+    float *     trig;
+    float *     input;
+    float *     output;
+
+    Histogram(Parameter * p) : Module(p) {}
+    virtual ~Histogram() {}
+    
     void		Init();
     void		Tick();
-
-    int         size_x;
-    int         size_y;
-
-    float		offset_x;
-    float		offset_y;
-    float		direction;
-
-    float **	input;
-    float **	output;
-
-    float *     shift;
 };
 
 
 #endif
+

@@ -1,6 +1,6 @@
 //
-//	Sum.h		This file is a part of the IKAROS project
-// 				Old example for version 1.1 and earlier.
+//	  Summation.h		This file is a part of the IKAROS project
+//                      Old example for version 1.1 and earlier.
 //
 //    Copyright (C) 2001-2007 Jan Moren
 //
@@ -19,22 +19,22 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef SUM
-#define SUM
+#ifndef SUMMATION_
+#define SUMMATION_
 
 #include "IKAROS.h"
 
-class Sum: public Module
+class Summation: public Module
 {
 
 public:
 
     // This is all boilerplate code to declare the needed methods for
-    // initialization of the module. Just change 'Sum' to whatever name your
+    // initialization of the module. Just change 'Summation' to whatever name your
     // module has.
 
-    Sum(Parameter * p);
-    virtual ~Sum();
+    Summation(Parameter * p);
+    virtual ~Summation();
 
     static Module * Create(Parameter * p);
 

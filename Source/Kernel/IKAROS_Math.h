@@ -1,7 +1,7 @@
 //
 //	IKAROS_Math.h		Various math functions for IKAROS
 //
-//    Copyright (C) 2006-2012  Christian Balkenius
+//    Copyright (C) 2006-2014  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -193,8 +193,8 @@ namespace ikaros
 	float **	clip(float ** r, float ** a, float low, float high, int sizex, int sizey);
 	
 	
-	float		add(float * a, int size);	// sum a
-	float		add(float ** a, int sizex, int sizey);	// sum a
+	float		sum(float * a, int size);	// sum a
+	float		sum(float ** a, int sizex, int sizey);	// sum a
 	
 	float *		add(float * r, float alpha, int size);	// r = r + alpha
 	float **	add(float ** r, float alpha, int sizex, int sizey);	// r = r + alpha
@@ -225,7 +225,9 @@ namespace ikaros
 	float *		subtract(float * r, float * a, float * b, int size);
 	float **	subtract(float ** r, float ** a, float ** b, int sizex, int sizey);
 	
-	
+    float       product(float * a, int size);
+    float       product(float ** m, int sizex, int sizey);
+    
 	float *		multiply(float * a, float alpha, int size);
 	float **	multiply(float ** a, float alpha, int sizex, int sizey);
 	float *		multiply(float * r, float * a, float alpha, int size);
@@ -339,6 +341,7 @@ namespace ikaros
 	char *      float_to_string(char * s, float v, int decimals, int n);
 
     float       angle_to_angle(float angle, int from_angle_unit, int to_angle_unit);
+    float       short_angle(float a1, float a2); // in radians
 
 	// misc
 
@@ -390,10 +393,8 @@ namespace ikaros
     void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);    
 
     bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
-    void        jpeg_decode(float ** matrix, int sizex, int sizey, char * data, long int size); // NOT IMPLEMENTED
     void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
 
-    char *      create_bmp(long int & size, float ** matrix, int sizex, int sizey);  // NOT IMPLEMENTED
     char *      create_bmp(long int & size, float * red_array, float * green_array, float * blue_array, int sizex, int sizey);
     char *      create_bmp(long int & size, float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey);
     void        destroy_bmp(char * bmp);
@@ -405,6 +406,9 @@ namespace ikaros
 
     void        draw_circle(float ** image, int sizex, int sizey, int x, int y, int radius, float color);
     void        draw_circle(float ** red, float ** green, float ** blue, int sizex, int sizey, int x, int y, int radius, float r, float g, float b);
+    void        draw_rectangle(float ** image, int size_x, int size_y, int x0, int y0, int x1, int y1, float color);
+    void        draw_rectangle(float ** red_image, float ** green_image, float ** blue_image, int size_x, int size_y, int x0, int y0, int x1, int y1, float red, float green, float blue);
+
 
     // linear algebra - TAT
     int 			eigs(float **result, float **matrix, int sizex, int sizey);

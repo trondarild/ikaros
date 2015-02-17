@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- Example of the different WebUI objects fillled with random values. -->
+<!-- Example of the different WebUI objects filled with random values. -->
 
 <group title="WebUI Demo">
 	
@@ -914,6 +914,15 @@
          <object class="Switch" title="Switch" x="0" y="2" />
 	</view>
 
+    <view name="Number as title test">
+        <object
+            x="0" y="0" 
+            class="BarGraph" 
+            module="R5" 
+            source="OUTPUT"
+            title = "1148"
+        />
+    </view>
 </group>
  
 

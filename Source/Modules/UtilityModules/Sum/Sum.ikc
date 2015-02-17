@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 
-<group name="Sum" description="adds two inputs">
+<group name="Sum" description="sums inputs">
 
 	<description type="text">
-		Module that sums its two inputs element by element.
-		Both inputs must have the same size.
+		Module that sums all elements in its input.
 	</description>
 
 	<example description="A simple example">
@@ -14,13 +13,22 @@
 		/>
 	</example>
 
-	<input name="INPUT1" description="The first input" />
-	<input name="INPUT2" description="The second input" />
+	<input name="INPUT" description="The  input" />
 
-	<output name="OUTPUT" description="The output" />
+	<output name="OUTPUT" description="The sum" size="1" />
 
 	<module class="Sum" />
 
+    <view title="Sum">
+        <object
+            x="0" y="0" w="2"
+            class="BarGraph"
+            module="*"
+            source="OUTPUT"
+            title="Default view for Sum"
+        />
+    </view>
+    
 	<author>
 		<name>Christian Balkenius</name>
 		<email>christian.balkenius@lucs.lu.se</email>
@@ -35,3 +43,4 @@
    </files>
 
 </group>
+

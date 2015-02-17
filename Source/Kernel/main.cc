@@ -205,6 +205,7 @@ run_batch(Options * options)
             k.ListModulesAndConnections();
             k.ListScheduling();
             k.ListThreads();
+            k.ListWarningsAndErrors();
             k.Run();
             k.PrintTiming();
             k.ListProfiling();
@@ -259,6 +260,7 @@ main(int argc, char *argv[])
         k.ListModulesAndConnections();
         k.ListScheduling();
         k.ListThreads();
+        k.ListWarningsAndErrors();
 
         // Select UI
 
@@ -299,7 +301,7 @@ main(int argc, char *argv[])
     
     catch (SerialException se)
     {
-        k.Notify(msg_exception, "Serial Exception: %s (%d). Program terminates.\n", se.string, se.internal_reference);        
+        k.Notify(msg_exception, "Serial Exception: %s (%s, %d). Program terminates.\n", se.device, se.string, se.internal_reference);
     }
 #ifdef USE_SOCKET
     catch (SocketException ex)

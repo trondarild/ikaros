@@ -1,7 +1,7 @@
 //
-//	WebUI.cc		HTTP support for the IKAROS kernel
+//	  WebUI.cc		HTTP support for the IKAROS kernel
 //
-//    Copyright (C) 2005-2014  Christian Balkenius
+//    Copyright (C) 2005-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -467,9 +467,12 @@ WebUI::AddDataSource(const char * module, const char * source)
     void * value_ptr;
     int type, size_x, size_y;
     
-//    printf("Adding data source: %s.%s\n", module, source);
-    
     XMLElement * group = current_xml_root;
+    if(equal_strings(module, "*"))
+    {
+        module = k->GetXMLAttribute(current_xml_root, "name");
+        group = group->GetParentElement();
+    }
     
     if (group == NULL)
     {
@@ -482,6 +485,8 @@ WebUI::AddDataSource(const char * module, const char * source)
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
+                if(!io->matrix)
+                    return;
                 md->AddSource(source, data_source_matrix, io->matrix[0], io->sizex, io->sizey);
                 return;
             }
@@ -489,7 +494,7 @@ WebUI::AddDataSource(const char * module, const char * source)
         view_data = new ModuleData(module, m, view_data);
         view_data->AddSource(source, io);
     }
-    else if(k->GetBinding(m, type, value_ptr, size_x, size_y, module, source))
+    else if(k->GetBinding(group, m, type, value_ptr, size_x, size_y, module, source))
     {
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
@@ -518,6 +523,11 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
     Module_IO * io3;
     
     XMLElement * group = current_xml_root;
+    if(equal_strings(module, "*"))
+    {
+        module = k->GetXMLAttribute(current_xml_root, "name");
+        group = group->GetParentElement();
+    }
     
     if (group == NULL)
     {
@@ -548,12 +558,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
             for (ModuleData * md=view_data; md != NULL; md=md->next)
                 if (!strcmp(md->name, module))
                 {
-                    md->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+                    if(io->matrix  && io2->matrix && io3->matrix)
+                        md->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
                      return;
                 }
             
-            view_data = new ModuleData(module, m, view_data);
-            view_data->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            if(io->matrix && io2->matrix && io3->matrix)
+            {
+                view_data = new ModuleData(module, m, view_data);
+                view_data->AddSource(source, data_source_rgb_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            }
         }
     }
 
@@ -580,12 +594,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
             for (ModuleData * md=view_data; md != NULL; md=md->next)
                 if (!strcmp(md->name, module))
                 {
-                    md->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+                    if(io->matrix  && io2->matrix && io3->matrix)
+                        md->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
                     return;
                 }
             
-            view_data = new ModuleData(module, m, view_data);
-            view_data->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            if(io->matrix  && io2->matrix && io3->matrix)
+            {
+                view_data = new ModuleData(module, m, view_data);
+                view_data->AddSource(source, data_source_bmp_image, io->matrix[0], io2->matrix[0], io3->matrix[0], io->sizex, io->sizey);
+            }
         }
     }
     
@@ -594,12 +612,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_gray_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
     
     else if(equal_strings(type, "fire") && k->GetSource(group, m, io, module, source))
@@ -607,12 +629,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_fire_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
     
     else if(equal_strings(type, "spectrum") && k->GetSource(group, m, io, module, source))
@@ -620,12 +646,16 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_spectrum_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
     
     else if(equal_strings(type, "green") && k->GetSource(group, m, io, module, source))
@@ -633,14 +663,17 @@ WebUI::AddImageDataSource(const char * module, const char * source, const char *
         for (ModuleData * md=view_data; md != NULL; md=md->next)
             if (!strcmp(md->name, module))
             {
-                md->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+                if(io->matrix)
+                    md->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
                 return;
             }
         
-        view_data = new ModuleData(module, m, view_data);
-        view_data->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        if(io->matrix)
+        {
+            view_data = new ModuleData(module, m, view_data);
+            view_data->AddSource(source, data_source_green_image, io->matrix[0], NULL, NULL, io->sizex, io->sizey);
+        }
     }
-    
     
     else
         k->Notify(msg_warning, "WebUI: Could not add data source %s.%s (not found)\n", module, source);
@@ -764,7 +797,7 @@ WebUI::SendView(const char * view)
     {
         group_xml = group_xml->GetElement("group");
         for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-            if(equal_strings(xml_module->GetAttribute("name"), group_in_path))
+            if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
             {
                 group_xml = xml_module;
                 break;
@@ -785,15 +818,15 @@ WebUI::SendView(const char * view)
     
     for (XMLElement * xml_view = group_xml->GetContentElement("view"); xml_view != NULL; xml_view = xml_view->GetNextElement("view"), v++)
     {
-        const char * n = xml_view->GetAttribute("name");
+        const char * n = k->GetXMLAttribute(xml_view, "name");
         if (
             (n != NULL && !strncmp(&view_name[1], n, strlen(view_name)-5)) ||	// test view name
             (!strncmp(view_name, "/view", 5) && v == ix)   // FIXME: test view number 0-9 for backward compatibility
 			)
         {
 			
-            float object_spacing = string_to_float(xml_view->GetAttribute("object_spacing"), 15.0);
-            float object_size = string_to_float(xml_view->GetAttribute("object_size"), 140.0);
+            float object_spacing = string_to_float(k->GetXMLAttribute(xml_view, "object_spacing"), 15.0);
+            float object_size = string_to_float(k->GetXMLAttribute(xml_view, "object_size"), 140.0);
 			
             // Calculate View Size
 			
@@ -803,10 +836,10 @@ WebUI::SendView(const char * view)
             for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
             {
                 // char * object_class = xml_uiobject->FindAttribute("class");
-                int x = string_to_int(xml_uiobject->GetAttribute("x"), -1);
-                int y = string_to_int(xml_uiobject->GetAttribute("y"), -1);
-                int width = string_to_int(xml_uiobject->GetAttribute("w"), 1);
-                int height = string_to_int(xml_uiobject->GetAttribute("h"), 1);
+                int x = string_to_int(k->GetXMLAttribute(xml_uiobject, "x"), -1);
+                int y = string_to_int(k->GetXMLAttribute(xml_uiobject, "y"), -1);
+                int width = string_to_int(k->GetXMLAttribute(xml_uiobject, "w"), 1);
+                int height = string_to_int(k->GetXMLAttribute(xml_uiobject, "h"), 1);
 				
                 if (x+width > view_width)
                     view_width = x+width;
@@ -860,11 +893,11 @@ WebUI::SendView(const char * view)
             float ** occ = create_matrix(50, 50); // max elements in view
             for (XMLElement * xml_uiobject = xml_view->GetContentElement("object"); xml_uiobject != NULL; xml_uiobject = xml_uiobject->GetNextElement("object"))
             {
-                const char * object_class = xml_uiobject->GetAttribute("class");
-                int x = string_to_int(xml_uiobject->GetAttribute("x"), 0);
-                int y = string_to_int(xml_uiobject->GetAttribute("y"), 0);
-                int width = string_to_int(xml_uiobject->GetAttribute("w"), 1);
-                int height = string_to_int(xml_uiobject->GetAttribute("h"), 1);
+                const char * object_class = k->GetXMLAttribute(xml_uiobject, "class");
+                int x = string_to_int(k->GetXMLAttribute(xml_uiobject, "x"), 0);
+                int y = string_to_int(k->GetXMLAttribute(xml_uiobject, "y"), 0);
+                int width = string_to_int(k->GetXMLAttribute(xml_uiobject, "w"), 1);
+                int height = string_to_int(k->GetXMLAttribute(xml_uiobject, "h"), 1);
                 
                 // Check opacity
                 
@@ -887,8 +920,10 @@ WebUI::SendView(const char * view)
                     {
                         // TODO: Test number - do this properly later
                         unsigned long l = strlen(p->value)-1;
-                        if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9'))
+                        if ((('0' <= p->value[0] && p->value[0] <='9') || p->value[0] == '-') && !strstr(p->value, ",") && ('0' <= p->value[l] && p->value[l] <='9') && (!equal_strings(p->name, "title")))
                             socket->Send("%s:%s, ", p->name, p->value);
+                    //    else if(equal_strings(p->value, "*"))
+                    //        socket->Send("%s:'%s', ", p->name, current_xml_root->GetAttribute("name"));
                         else
                             socket->Send("%s:'%s', ", p->name, p->value); // quote other content
                     }
@@ -927,12 +962,12 @@ WebUI::Run()
 	
 	if(xml)
 	{
-		const char * ip = xml->GetAttribute("masterip");
+		const char * ip = k->GetXMLAttribute(xml, "masterip");
 		if(ip)
 		{
 			Socket s;
 			char rr[100];
-			int masterport = string_to_int(xml->GetAttribute("masterport"), 9000);
+			int masterport = string_to_int(k->GetXMLAttribute(xml, "masterport"), 9000);
 			k->Notify(msg_print, "Waiting for master: %s:%d\n", ip, masterport);
 			fflush(stdout);
 			if(!s.Get(ip, masterport, "*", rr, 100))
@@ -1140,7 +1175,11 @@ WebUI::SendUIData() // TODO: allow number of decimals to be changed - or use E-f
 	
     for (ModuleData * md=view_data; md != NULL; md=md->next)
     {
-        socket->Send("\"%s\":\n{\n", md->name);
+        if(equal_strings(md->name, k->GetXMLAttribute(current_xml_root, "name")))
+            socket->Send("\"*\":\n{\n");
+        else
+            socket->Send("\"%s\":\n{\n", md->name);
+        
         for (DataSource * sd=md->source; sd != NULL; sd=sd->next)
         {
             switch(sd->type)
@@ -1310,7 +1349,7 @@ WebUI::HandleHTTPRequest()
         {
             group_xml = group_xml->GetElement("group");
             for (XMLElement * xml_module = group_xml->GetContentElement("group"); xml_module != NULL; xml_module = xml_module->GetNextElement("group"))
-                if(equal_strings(xml_module->GetAttribute("name"), group_in_path))
+                if(equal_strings(k->GetXMLAttribute(xml_module, "name"), group_in_path))
                 {
                     group_xml = xml_module;
                     break;
@@ -1343,10 +1382,10 @@ WebUI::HandleHTTPRequest()
     else if (strstart(uri, "/uses"))
     {
         char * module = new char [256];
-        char * output = new char [256];
-        int c = sscanf(uri, "/uses/%[^/]/%[^/]", module, output);
+        char * source = new char [256];
+        int c = sscanf(uri, "/uses/%[^/]/%[^/]", module, source);
         if (c == 2)
-            AddDataSource(module, output);
+            AddDataSource(module, source);
 		
 		Dictionary header;
 		header.Set("Content-Type", "text/plain");
@@ -1354,7 +1393,7 @@ WebUI::HandleHTTPRequest()
         socket->Send("OK\n");
         
 		delete module;
-        delete output;
+        delete source;
     }
 
     else if (strstart(uri, "/control/"))
@@ -1366,28 +1405,14 @@ WebUI::HandleHTTPRequest()
         int c = sscanf(uri, "/control/%[^/]/%[^/]/%d/%d/%f", module_name, name, &x, &y, &value);
         if(c == 5)
         {
-            Module * module = k->GetModule(module_name);
-            if(!module)
+            XMLElement * group = current_xml_root;
+            if(equal_strings(module_name, "*"))
             {
-                k->Notify(msg_warning, "Module \"%s\" does not exist.\n", module_name);
-                destroy_string(uri);
-                return;
+                strcpy(module_name, k->GetXMLAttribute(current_xml_root, "name"));
+                group = group->GetParentElement();
             }
 
-            for(Binding * b = module->bindings; b != NULL; b = b->next)
-                if(equal_strings(name, b->name))
-                {
-                    if(b->type == bind_float)
-                        *((float *)(b->value)) = value;
-                    else if(b->type == bind_int || b->type == bind_list)
-                        *((int *)(b->value)) = (int)value;
-                    else if(b->type == bind_float)
-                        *((bool *)(b->value)) = (value > 0);
-                    else if(b->type == bind_array)
-                        ((float *)(b->value))[x] = value;     // TODO: add range check!!!
-                    else if(b->type == bind_matrix)
-                       ((float **)(b->value))[y][x] = value;
-                 }
+            k->SetParameter(group, module_name, name, x, y, value);
         }
 
 		Dictionary header;
@@ -1437,30 +1462,32 @@ WebUI::HandleHTTPRequest()
     {
         char module[256], output[256], type[256];
         int c = sscanf(uri, "/module/%[^/]/%[^/]/%[^/]", module, output, type);
-		
-        Module * m;
-        Module_IO * source;
-        
-        if(!k->GetSource(current_xml_root, m, source, module, output))
+
+        if(c != 3)
         {
-            k->Notify(msg_warning, "The output \"%s.%s\" does not exist, or\n", module, output);
-            k->Notify(msg_warning, "\"%s\" may be an unkown data type.\n", type);
+            socket->Send( "Incorrect data: %s/%s/%s\n", module, output, type);
             destroy_string(uri);
-            
             return;
         }
-        else if (c == 3) // always send as data  && !strcmp(type, "data.txt")
+
+        Module * m = k->GetModuleFromFullName(module);        
+        if(m)
         {
             int sx = m->GetOutputSizeX(output);
             int sy = m->GetOutputSizeY(output);
             char * s = create_formatted_string("%s.%s [%dx%d]", module, output, sx, sy);
             if (!SendHTMLData(socket, s, m->GetOutputMatrix(output), sx, sy))
                 k->Notify(msg_warning, "Could not send: data.txt\n");
+            destroy_string(uri);
+            return;
         }
         
         else
         {
-            k->Notify(msg_warning, "Unkown data type: %s\n", type);
+            socket->Send( "The output \"%s.%s\" does not exist, or\n", module, output);
+            socket->Send( "\"%s\" may be an unkown data type.\n", type);
+            destroy_string(uri);
+            return;
         }
     }
 	
@@ -1479,6 +1506,14 @@ WebUI::HandleHTTPRequest()
         socket->SendFile("index.html", webui_dir);
     }
     
+    else if (!strcmp(uri, "/Buttons/realtime.png"))
+    {
+        if(k->GetTickLength() > 0)
+            socket->SendFile("Buttons/realtime.png", webui_dir);
+        else
+            socket->SendFile("Buttons/ff.png", webui_dir);
+    }
+
     else if (
 			 strend(uri, ".xml") ||
 			 strend(uri, ".jpg") ||
@@ -1603,9 +1638,9 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
         if(g)
             for (XMLElement * parameter = g->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
             {
-                const char * name = parameter->GetAttribute("name");
-                const char * type = parameter->GetAttribute("type");
-                const char * description = parameter->GetAttribute("description");
+                const char * name = parameter->GetAttribute("name");    // No inheritance here
+                const char * type = parameter->GetAttribute("type");    // No inheritance here
+                const char * description = parameter->GetAttribute("description");    // No inheritance here
 				
                 // TODO: Allow editing if bound
                 // ****
@@ -1683,7 +1718,7 @@ WebUI::SendModule(Module * m) // TODO: Use stylesheet for everything
 			for (Module_IO * i = m->output_list; i != NULL; i = i->next)
 			{
 				socket->Send("<tr>\n");
-				socket->Send("<td><a onclick=\"var w = window.open('module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetName(), i->name, i->name);
+				socket->Send("<td><a onclick=\"var w = window.open('/module/%s/%s/data.txt','','status=no,width=500, height=700');\">%-10s</a></td>\n", m->GetFullName(), i->name, i->name);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizex);
 				socket->Send("<td width='25' align='right'>%d</td>\n", i->sizey);
 				if(m->OutputConnected(i->name))

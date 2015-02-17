@@ -1,7 +1,7 @@
 //
 //	  IKAROS.cc		Kernel code for the IKAROS project
 //
-//    Copyright (C) 2001-2012  Christian Balkenius
+//    Copyright (C) 2001-2015  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@
 //		2007-05-10	Version 1.0.0 created
 //		2007-07-05	Malloc debugging added
 //		2008-12-28  All legacy support and deprecated functions removed to simplify XML cleanup
+//      Revision history now maintained at GitHUb
 
 #include "IKAROS.h"
 
@@ -81,9 +82,11 @@
 
 
 using namespace ikaros;
+
 bool			global_fatal_error = false;	// Must be global because it is used before the kernel is created
 bool			global_terminate = false;	// Used to flag that CTRL-C has been received
-
+int             global_error_count = 0;
+int             global_warning_count = 0;
 
 //#define USE_MALLOC_DEBUG
 
@@ -279,8 +282,10 @@ Module_IO::Allocate()
     }
 }
 
-Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y)
+Module_IO::Module_IO(Module_IO * nxt, Module * m, const char * n, int x, int y, bool opt, bool multiple)
 {
+    optional = opt;
+    allow_multiple = multiple;
     next = nxt;
     module = m;
     name = n;
@@ -319,7 +324,7 @@ Module_IO::SetSize(int x, int y)
     if (size != unknown_size && s != size)
     {
         if (module != NULL)
-            module->Notify(msg_warning, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name, module->GetName(), module->GetClassName(), size, s);
+            module->Notify(msg_fatal_error, "Module_IO::SetSize: Attempt to resize data array \"%s\" of module \"%s\" (%s) (%d <= %d). Ignored.\n",  name, module->GetName(), module->GetClassName(), size, s);
         return;
     }
     if (s == size)
@@ -352,26 +357,26 @@ Module::~Module()
 }
 
 void
-Module::AddInput(const char * name)
+Module::AddInput(const char * name, bool optional, bool allow_multiple_connections)
 {
     if (GetModule_IO(input_list, name) != NULL)
     {
         Notify(msg_warning, "Input \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
     }
-    input_list = new Module_IO(input_list, this, name);
+    input_list = new Module_IO(input_list, this, name, unknown_size, 1, optional, allow_multiple_connections);
     Notify(msg_verbose, "  Adding input \"%s\".\n", name);
 }
 
 void
-Module::AddOutput(const char * name, int sizeX, int sizeY)
+Module::AddOutput(const char * name, int sizeX, int sizeY, bool optional)
 {
     if (GetModule_IO(output_list, name) != NULL)
     {
         Notify(msg_warning, "Output \"%s\" of module \"%s\" (%s) already exists.\n", name, GetName(), GetClassName());
         return;
     }
-    output_list = new Module_IO(output_list, this, name, sizeX, sizeY);
+    output_list = new Module_IO(output_list, this, name, sizeX, sizeY, optional);
     Notify(msg_verbose, "  Adding output \"%s\" of size %d x %d to module \"%s\" (%s).\n", name, sizeX, sizeY, GetName(), GetClassName());
 }
 
@@ -406,7 +411,7 @@ Module::GetTick()
 }
 
 const char *
-Module::GetList(const char * n) // TODO: Check that this compicated procedure is really necessary; join with GetDefault and GetValue
+Module::GetList(const char * n) // TODO: Check that this complicated procedure is really necessary; join with GetDefault and GetValue
 {
     const char * module_name = GetName();
     
@@ -416,28 +421,28 @@ Module::GetList(const char * n) // TODO: Check that this compicated procedure is
         // Look for parameter element that redefines the attribute name
         for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
         {
-            if(equal_strings(parameter->GetAttribute("name"), n))
+            if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
             {
-                const char * d = parameter->GetAttribute("values");
+                const char * d = kernel->GetXMLAttribute(parameter, "values");
                 if(d)
                     return d;
             }
             
-            const char * t = parameter->GetAttribute("target");
-            if (equal_strings(parameter->GetAttribute("target"), n))
+            const char * t = kernel->GetXMLAttribute(parameter, "target");
+            if (equal_strings(t, n))
             {                
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = parameter->GetAttribute("module");
+                const char * tm = kernel->GetXMLAttribute(parameter, "module");
                 if (tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
-                    const char * d = parameter->GetAttribute("values");
+                    const char * d = kernel->GetXMLAttribute(parameter, "values");
                     if(d)
                         return d;
                     
                     // the parameter element redefines our parameter name; get the new name
-                    const char * newname = parameter->GetAttribute("name");
+                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
                     if (newname == NULL)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
@@ -450,7 +455,7 @@ Module::GetList(const char * n) // TODO: Check that this compicated procedure is
         }
         
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = parent->GetAttribute("name");
+        module_name = kernel->GetXMLAttribute(parent, "name"); // FIXME: check if this will ever happen with the new GetXMLAttribute call
     }
     return NULL; // No list value was found
 }
@@ -466,28 +471,28 @@ Module::GetDefault(const char * n)
         // Look for parameter element that redefines the attribute name
         for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
         {
-            if(equal_strings(parameter->GetAttribute("name"), n))
+            if(equal_strings(kernel->GetXMLAttribute(parameter, "name"), n))
             {
-                const char * d = parameter->GetAttribute("default");
+                const char * d = kernel->GetXMLAttribute(parameter, "default");
                 if(d)
                     return d;
             }
             
-            const char * t = parameter->GetAttribute("target");
-            if (equal_strings(parameter->GetAttribute("target"), n))
+            const char * t = kernel->GetXMLAttribute(parameter, "target");
+            if (equal_strings(t, n))
             {                
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = parameter->GetAttribute("module");
+                const char * tm = kernel->GetXMLAttribute(parameter, "module");
                 if (tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // use default if it exists
-                    const char * d = parameter->GetAttribute("default");
+                    const char * d = kernel->GetXMLAttribute(parameter, "default");
                     if(d)
                         return d;
                     
                     // the parameter element redefines our parameter name; get the new name
-                    const char * newname = parameter->GetAttribute("name");
+                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
                     if (newname == NULL)
                     {
                         Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
@@ -500,8 +505,9 @@ Module::GetDefault(const char * n)
         }
         
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = parent->GetAttribute("name");
+        module_name = kernel->GetXMLAttribute(parent, "name");
     }
+    
     return NULL; // No default value was found
 }
 
@@ -512,7 +518,7 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
 {
     const char * module_name = GetName();
     // Check for local value in this element
-    const char * value = xml->GetAttribute(n);
+    const char * value = kernel->GetXMLAttribute(xml, n);
     if (value != NULL)
         return value;
     // not found here, loop up the group hierarchy
@@ -521,16 +527,15 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
         // Look for parameter element that redefines the attribute name
         for (XMLElement * parameter = parent->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
         {
-            //            const char * t = parameter->GetAttribute("target");
-            if (equal_strings(parameter->GetAttribute("target"), n))
+            if (equal_strings(kernel->GetXMLAttribute(parameter, "target"), n))
             {
                 // we have found our parameter
                 // it controls this module if module name is set to the name of this module or if it is not set = relates to all modules
-                const char * tm = parameter->GetAttribute("module");
+                const char * tm = kernel->GetXMLAttribute(parameter, "module");
                 if (tm == NULL || (equal_strings(tm, module_name)))
                 {
                     // the parameter element redefines our parameter name; get the new name
-                    const char * newname = parameter->GetAttribute("name");
+                    const char * newname = kernel->GetXMLAttribute(parameter, "name");
                     if (newname == NULL)
                     {
                         // Notify(msg_fatal_error, "A parameter element with target \"%s\" lacks a name attribute.\n", t);
@@ -541,34 +546,51 @@ Module::GetValue(const char * n)	// This function implements attribute inheritan
                 }
             }
         }
-        value = parent->GetAttribute(n);
+        value = kernel->GetXMLAttribute(parent, n);
         if (value != NULL)
             return value;
         // It was not found here; shift module name to that of the current group and continue up the group hierarchy...
-        module_name = parent->GetAttribute("name");
+        module_name = kernel->GetXMLAttribute(parent, "name");
     }
     
     // No value was found, check if we are in batch mode and look for batch a value
-    
+/*
     value = kernel->GetBatchValue(n);
     if (value != NULL)
         return value;
     
+    // Look in the values assigned at start up
+    
+    value = kernel->options->GetValue(n);
+    if(value != NULL)
+        return value;
+*/
     // As a last step, look for default instead
     
     return GetDefault(n);
 }
 
+
+
 float
 Module::GetFloatValue(const char * n, float d)
 {
+    if(d != 0)
+        Notify(msg_warning, "Default value for GetFloatValue(\"%s\") is deprectaed and should be specified in IKC file instead.", n);
+
     return string_to_float(GetValue(n), d);
 }
 
 int
 Module::GetIntValue(const char * n, int d)
 {
-    return string_to_int(GetValue(n), d);
+    if(d != 0)
+        Notify(msg_warning, "Default value for GetIntValue(\"%s\") is deprectaed and should be specified in IKC file instead.", n);
+    
+    if(GetList(n))
+        return GetIntValueFromList(n);
+    else
+        return string_to_int(GetValue(n), d);
 }
 
 static bool
@@ -725,6 +747,15 @@ Module::GetIntArray(const char * n, int & size)
 
 
 float **
+Module::GetMatrix(const char * n, int & sizex, int & sizey)
+{
+    return create_matrix(GetValue(n), sizex, sizey);
+}
+
+
+
+/*
+float **
 Module::GetMatrix(const char * n, int sizex, int sizey)
 {
     float ** m = create_matrix(sizex, sizey);
@@ -761,6 +792,10 @@ Module::GetMatrix(const char * n, int sizex, int sizey)
 
     return m;
 }
+*/
+
+
+
 
 
 
@@ -785,7 +820,7 @@ Module::Bind(float * & v, int size, const char * n)
 
 
 void
-Module::Bind(float ** & v, int sizex, int sizey, const char * n)
+Module::Bind(float ** & v, int & sizex, int & sizey, const char * n)
 {
     // TODO: check type here
     v = GetMatrix(n, sizex, sizey);
@@ -855,7 +890,7 @@ Module::GetInputArray(const char * name, bool required)
         {
             if (i->data == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Input array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -874,7 +909,7 @@ Module::GetOutputArray(const char * name, bool required)
         {
             if (i->data == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Output array \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -893,7 +928,7 @@ Module::GetInputMatrix(const char * name, bool required)
         {
             if (i->matrix == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Input matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -912,7 +947,7 @@ Module::GetOutputMatrix(const char * name, bool required)
         {
             if (i->matrix == NULL)
             {
-                if(required)
+                if(required && !i->optional)
                     Notify(msg_fatal_error, "Output matrix \"%s\" of module \"%s\" (%s) has no allocated data. Returning NULL.\n", name, GetName(), GetClassName());
                 return NULL;
             }
@@ -983,6 +1018,7 @@ Module::GetOutputSize(const char * name)
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if (equal_strings(name, i->name))
             return i->size;
+    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
 
@@ -992,6 +1028,7 @@ Module::GetOutputSizeX(const char * name)
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if (equal_strings(name, i->name))
             return  i->sizex;
+    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
 
@@ -1001,6 +1038,7 @@ Module::GetOutputSizeY(const char * name)
     for (Module_IO * i = output_list; i != NULL; i = i->next)
         if (equal_strings(name, i->name))
             return  i->sizey;
+    Notify(msg_warning, "Attempting to get size of non-existing output %s.%s \n", this->instance_name, name);
     return 0;
 }
 
@@ -1041,10 +1079,10 @@ Module::Module(Parameter * p)
     ticks = 0;
     kernel = p->kernel;
     xml = p->xml;
-    instance_name = GetValue("name");
-    class_name = xml->GetAttribute("class");
-    period = GetIntValue("period", 1);
-    phase = GetIntValue("phase", 0);
+    instance_name = kernel->GetXMLAttribute(xml, "name"); // GetValue("name");
+    class_name = kernel->GetXMLAttribute(xml, "class");
+    period = (GetValue("period") ? GetIntValue("period") : 1);
+    phase = (GetValue("phase") ? GetIntValue("phase") : 0);
 	
 	// Compute full name
 	
@@ -1052,12 +1090,12 @@ Module::Module(Parameter * p)
     const char * group[128];
     int i=0;
     for (XMLElement * parent = xml->GetParentElement(); parent != NULL; parent = parent->GetParentElement())
-        if(parent->GetAttribute("name") && i<100)
-            group[i++] = parent->GetAttribute("name");
+        if(kernel->GetXMLAttribute(parent,"name") && i<100)
+            group[i++] = kernel->GetXMLAttribute(parent, "name");
     for(int j=i-1; j>=0; j--)
     {
         append_string(n, group[j], 1024);
-        if(j>0) append_string(n, ":", 1024);
+        if(j>0) append_string(n, ".", 1024);
     }
     full_instance_name = create_string(n);
 }
@@ -1069,10 +1107,14 @@ Module::AddIOFromIKC()
         return;
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("input"); e != NULL; e = e->GetNextElement("input"))
-        AddInput(e->GetAttribute("name"));
+    {
+        const char * amc = kernel->GetXMLAttribute(e, "allow_multiple_connections");
+        bool multiple = (amc ? tobool(amc) : true); // True is defaut value
+        AddInput(kernel->GetXMLAttribute(e, "name"), tobool(kernel->GetXMLAttribute(e, "optional")), multiple);
+    }
     
     for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
-        AddOutput(e->GetAttribute("name"));
+        AddOutput(kernel->GetXMLAttribute(e, "name"));
 }
 
 // Default SetSizes sets output sizes from IKC file based on size_set, size_param, and size attributes
@@ -1104,9 +1146,9 @@ Module::GetSizeXFromList(const char * sizearg)
         int new_sx = GetInputSizeX(input);
         if(sx == unknown_size )
             sx = new_sx;
-        else if(new_sx != sx)
+        else if(new_sx != unknown_size && new_sx != sx)
         {
-            Notify(msg_warning, "Incompatible sizes for set_size_x, usinging max(%s)", sizearg);
+            Notify(msg_warning, "Incompatible sizes for set_size_x, using max(%s)", sizearg);
             sx = max(sx, new_sx);
         }
         input = strsep(&s, ",");
@@ -1144,7 +1186,7 @@ Module::GetSizeYFromList(const char * sizearg)
         int new_sy = GetInputSizeY(input);
         if(sy == unknown_size )
             sy = new_sy;
-        else if(new_sy != sy)
+        else if(new_sy != unknown_size && new_sy != sy)
         {
             Notify(msg_warning, "Incompatible sizes for set_size_y, using max(%s)", sizearg);
             sy = max(sy, new_sy);
@@ -1170,53 +1212,53 @@ Module::SetSizes()
         const char * arg;
 		for(XMLElement * e=xml->GetParentElement()->GetContentElement("output"); e != NULL; e = e->GetNextElement("output"))
         {
-            const char * output_name = e->GetAttribute("name");
-            
+            const char * output_name = kernel->GetXMLAttribute(e, "name");
+
             // First get simple attributes
             
             int sx = unknown_size;
             int sy = unknown_size;
 
-            if((sizearg = e->GetAttribute("size_param")) && (arg = GetValue(sizearg)))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_param")) && (arg = GetValue(sizearg)))
             {
                 sx = string_to_int(arg);
                 sy = 1;
             }
             
-            if((sizearg = e->GetAttribute("size_param_x")) && (arg = GetValue(sizearg)))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_param_x")) && (arg = GetValue(sizearg)))
                 sx = string_to_int(arg);
             
-            if((sizearg = e->GetAttribute("size_param_y")) && (arg = GetValue(sizearg)))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_param_y")) && (arg = GetValue(sizearg)))
                 sy = string_to_int(arg);
             
-            if((sizearg = e->GetAttribute("size")))
+            if((sizearg = kernel->GetXMLAttribute(e, "size")))
             {
                 sx = string_to_int(sizearg);
                 sy = 1;
             }
             
-            if((sizearg = e->GetAttribute("size_x")))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_x")))
                 sx = string_to_int(sizearg);
             
-            if((sizearg = e->GetAttribute("size_y")))
+            if((sizearg = kernel->GetXMLAttribute(e, "size_y")))
                 sy = string_to_int(sizearg);
             
-			if((sizearg = e->GetAttribute("size_set"))) // Set output size x & y from one or multiple inputs
+			if((sizearg = kernel->GetXMLAttribute(e, "size_set"))) // Set output size x & y from one or multiple inputs
             {
                 sx = GetSizeXFromList(sizearg);
                 sy = GetSizeYFromList(sizearg);
 			}
             
-			else if((sizearg = e->GetAttribute("size_set_x")) && (sizeargy = e->GetAttribute("size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
+			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_x")) && (sizeargy = kernel->GetXMLAttribute(e, "size_set_y")) ) // Set output size x from one or multiple different inputs for both x and y
 			{
-                sx = GetSizeXFromList(sizearg);
-                sy = GetSizeYFromList(sizeargy);
+                sx = GetSizeXFromList(sizearg) * GetSizeYFromList(sizearg);     // Use total input sizes
+                sy = GetSizeXFromList(sizeargy) * GetSizeYFromList(sizeargy);   // TODO: Check that no modules assumes it is ony X or Y sizes
 			}
             
-			else if((sizearg = e->GetAttribute("size_set_x"))) // Set output size x from one or multiple inputs
+			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_x"))) // Set output size x from one or multiple inputs
                 sx = GetSizeXFromList(sizearg);
             
-			else if((sizearg = e->GetAttribute("size_set_y"))) // Set output size y from one or multiple inputs
+			else if((sizearg = kernel->GetXMLAttribute(e, "size_set_y"))) // Set output size y from one or multiple inputs
                 sy = GetSizeYFromList(sizearg);
             
             SetOutputSize(output_name, sx, sy);
@@ -1232,7 +1274,14 @@ Module::Notify(int msg)
     if (kernel != NULL)
         kernel->Notify(msg, "\n");
     else if (msg == msg_fatal_error)
+    {
         global_fatal_error = true;
+        global_error_count++;
+    }
+    else if(msg == msg_warning)
+    {
+        global_warning_count++;
+    }
 }
 
 void
@@ -1255,7 +1304,12 @@ Module::Notify(int msg, const char *format, ...)
         if(message[strlen(message)-1] == '\n')
             message[strlen(message)-1] = '\0';
         printf("IKAROS: ERROR: %s\n", message);
+        global_error_count++;
     }
+    else if(msg == msg_warning)
+    {
+         global_warning_count++;
+   }
 }
 
 Connection::Connection(Connection * n, Module_IO * sio, int so, Module_IO * tio, int to, int s, int d)
@@ -1310,14 +1364,14 @@ ThreadGroup::AddModule(Module * m)
     
     bool p = false;
     for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
-        p = p | kernel->Preceedes(pm, m);
+        p = p | kernel->Precedes(pm, m);
     
     // Check for the case where this module preceedes a module that will be added to the group in the future
 	
     if(!p)
         for(Module * pm = modules; pm != NULL; pm = pm->next_in_threadGroup)
             for(Module * nm = m->next; nm != NULL; nm = nm->next)
-                if(kernel->Preceedes(pm, nm) && kernel->Preceedes(m, nm))
+                if(kernel->Precedes(pm, nm) && kernel->Precedes(m, nm))
                 {
                     p = true;
                     break;
@@ -1622,12 +1676,12 @@ Kernel::Run()
 	// Synchronize with master process if one is indicated in the IKC file
 	if(xmlDoc)
 	{
-        const char * ip = xmlDoc->xml->GetAttribute("masterip");
+        const char * ip = GetXMLAttribute(xmlDoc->xml, "masterip");
         if(ip)
         {
             Socket s;
             char rr[100];
-            int port = string_to_int(xmlDoc->xml->GetAttribute("masterport"), 9000);
+            int port = string_to_int(GetXMLAttribute(xmlDoc->xml, "masterport"), 9000);
             printf("Waiting for master: %s:%d\n", ip, port);
             fflush(stdout);
             if(!s.Get(ip, port, "*", rr, 100))
@@ -1738,6 +1792,10 @@ Kernel::InitInputs()
         {
             Notify(msg_fatal_error, "Output \"%s\" of module \"%s\" (%s) has unknown size.\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
         }
+        else if(c->target_io->data != NULL && c->target_io->allow_multiple == false)
+        {
+            Notify(msg_fatal_error, "Input \"%s\" of module \"%s\" (%s) does not allow multiple connections.\n", c->target_io->name, c->target_io->module->instance_name, c->target_io->module->GetClassName());
+        }
         else if (c->delay == 0)
         {
             Notify(msg_verbose, "Short-circuiting zero-delay connection from \"%s\" of module \"%s\" (%s)\n", c->source_io->name, c->source_io->module->instance_name, c->source_io->module->GetClassName());
@@ -1844,6 +1902,10 @@ Kernel::Init()
         ReadXML();
     else
         Notify(msg_fatal_error, "No IKC file supplied.\n");
+    
+    DetectCycles();
+    if(fatal_error_occured)
+        return;
     SortModules();
     CalculateDelays();
     InitOutputs();      // Calculate the output sizes for outputs that have not been specified at creation
@@ -1901,12 +1963,15 @@ Kernel::Tick()
     tick++;
 }
 
+
 void
 Kernel::DelayOutputs()
 {
     for (Module * m = modules; m != NULL; m = m->next)
         m->DelayOutputs();
 }
+
+
 
 void
 Kernel::AddModule(Module * m)
@@ -1930,37 +1995,80 @@ Kernel::GetModule(const char * n)
 
 
 
+Module *
+Kernel::GetModuleFromFullName(const char * n)
+{
+    for (Module * m = modules; m != NULL; m = m->next)
+        if (equal_strings(n, m->full_instance_name))
+            return m;
+    return NULL;
+}
+
+
+
 bool
 Kernel::GetSource(XMLElement * group, Module * &m, Module_IO * &io, const char * source_module_name, const char * source_name)
 {
     for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
-        if (xml->IsElement("module") && (equal_strings(xml->GetAttribute("name"), source_module_name) || equal_strings(source_module_name, "*")))
+    {
+//        xml->Print(stdout, 0);
+        
+        if (xml->IsElement("module") && (equal_strings(GetXMLAttribute(xml, "name"), source_module_name) || equal_strings(source_module_name, "*")))
 		{
 			m = (Module *)(xml->aux);
 			if (m != NULL)
 				io = m->GetModule_IO(m->output_list, source_name);
 			if (m != NULL && io != NULL)
 				return true;
+            
+        // NEW: Get inputs as well
+			if (m != NULL)
+				io = m->GetModule_IO(m->input_list, source_name);
+			if (m != NULL && io != NULL)
+				return true;
+        // END NEW
+        
 			return false;
 		}
-		else if (xml->IsElement("group") && equal_strings(xml->GetAttribute("name"), source_module_name)) // Translate output name
+		else if (xml->IsElement("group") && equal_strings(GetXMLAttribute(xml, "name"), source_module_name)) // Translate output name
 		{
 			for (XMLElement * output = xml->GetContentElement("output"); output != NULL; output = output->GetNextElement("output"))
 			{
-				const char * n = output->GetAttribute("name");
+				const char * n = GetXMLAttribute(output, "name");
 				if (n == NULL)
 					return false;
 				if (equal_strings(n, source_name) || equal_strings(n, "*"))
 				{
-					const char * new_module = output->GetAttribute("sourcemodule");
-					const char * new_source = output->GetAttribute("source");
+					const char * new_module = GetXMLAttribute(output, "sourcemodule");
+					const char * new_source = GetXMLAttribute(output, "source");
+					if (new_module == NULL)
+						new_module = source_module_name;	// retain name
 					if (new_source == NULL)
 						new_source = source_name;	// retain name
 					return GetSource(xml, m, io, new_module, new_source);
 				}
 			}
+            
+            // NEW: Get inputs as well
+            for (XMLElement * input = xml->GetContentElement("input"); input != NULL; input = input->GetNextElement("input"))
+			{
+				const char * n = GetXMLAttribute(input, "name");
+				if (n == NULL)
+					return false;
+				if (equal_strings(n, source_name) || equal_strings(n, "*"))
+				{
+					const char * new_module = GetXMLAttribute(input, "targetmodule");
+					const char * new_source = GetXMLAttribute(input, "target");
+					if (new_source == NULL)
+						new_source = source_name;	// retain name
+					return GetSource(xml, m, io, new_module, new_source);
+				}
+			}
+            // NEW END
+            
 		}
-
+    }
+    
     return false;
 }
 
@@ -2013,15 +2121,37 @@ Kernel::GetBatchValue(const char * n)
         if(equal_strings(xml_node->GetAttribute("target"), n))
         {
             if(rank == 0)
-                rank = string_to_int(xml_node->GetAttribute("rank"));
+                rank = string_to_int(GetXMLAttribute(xml_node, "rank"));
                 
             if(rank == 0)
                 return NULL;
             
-            const char * value = find_nth_element(xml_node->GetAttribute("values"), rank);
-            printf("IKAROS: %s = \"%s\"\n", xml_node->GetAttribute("target"), value);
+            const char * value = find_nth_element(GetXMLAttribute(xml_node, "values"), rank);
+            printf("IKAROS: %s = \"%s\"\n", GetXMLAttribute(xml_node, "target"), value);
             return value;
         }
+    
+    return NULL;
+}
+
+
+
+const char *
+Kernel::GetXMLAttribute(XMLElement * e, const char * attribute)
+{
+    const char * value = NULL;
+    
+    while(e != NULL && e->IsElement())
+        if((value = e->GetAttribute(attribute)))
+             return value;
+        else
+            e = (XMLElement *)(e->parent);
+
+    if((value = GetBatchValue(attribute)))
+        return value;
+    
+    if((value = options->GetValue(attribute)))
+        return value;
     
     return NULL;
 }
@@ -2052,18 +2182,151 @@ Kernel::GetBinding(Module * &m, int &type, void * &value_ptr, int & sx, int & sy
 }
 
 
+static char wildcard[2] = "*";
+
+
+// Find FIRST binding (ignore the rest)
 
 bool
-Kernel::Preceedes(Module * a, Module * b)
+Kernel::GetBinding(XMLElement * group, Module * &m, int &type, void * &value_ptr, int & sx, int & sy, const char * group_name, const char * parameter_name)
+{
+    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
+        if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+		{
+			m = (Module *)(xml->aux);
+            
+			if(m == NULL)
+                return false;
+            
+            for(Binding * b = m->bindings; b != NULL; b = b->next)
+                if(equal_strings(parameter_name, b->name))
+                {
+                    type = b->type;
+                    value_ptr = b->value;
+                    sx = b->size_x;
+                    sy = b->size_y;
+                    return true;
+                }
+            
+			return false;
+		}
+		else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		{
+            const char * new_module = wildcard;
+            const char * new_parameter = parameter_name;
+
+			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
+			{
+				const char * n =GetXMLAttribute(parameter, "name");
+                
+				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
+				{
+ 					new_module = GetXMLAttribute(parameter, "targetmodule");
+					new_parameter = GetXMLAttribute(parameter, "target");
+                    
+					if (new_module == NULL)
+						new_module = wildcard;	// match all modules
+                    
+					if (new_parameter == NULL)
+						new_parameter = parameter_name;	// retain name
+				}
+                
+                if(equal_strings("interval", n))
+                {
+                    printf("STOP\n");
+                }
+
+			}
+            
+            
+            return GetBinding(xml, m, type, value_ptr, sx, sy, new_module, new_parameter);
+		}
+
+    return false;
+}
+
+
+void
+Module::SetParameter(const char * parameter_name, int x, int y, float value)
+{
+     for(Binding * b = bindings; b != NULL; b = b->next)
+        if(equal_strings(parameter_name, b->name))
+        {
+            if(b->type == bind_float)
+                *((float *)(b->value)) = value;
+            else if(b->type == bind_int || b->type == bind_list)
+                *((int *)(b->value)) = (int)value;
+            else if(b->type == bind_bool)
+                *((bool *)(b->value)) = (value > 0);
+            else if(b->type == bind_array)
+                ((float *)(b->value))[x] = value;     // TODO: add range check!!!
+            else if(b->type == bind_matrix)
+               ((float **)(b->value))[y][x] = value;
+        }
+}
+
+
+
+void
+Kernel::SetParameter(XMLElement * group, const char * group_name, const char * parameter_name, int select_x, int select_y, float value)
+{
+    for (XMLElement * xml = group->GetContentElement(); xml != NULL; xml = xml->GetNextElement())
+    {
+        // Set parameters of modules in this group
+    
+       if (xml->IsElement("module") && (!GetXMLAttribute(xml, "name") || equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*")))
+		{
+			Module * m = (Module *)(xml->aux);
+			if(m != NULL)
+                m->SetParameter(parameter_name, select_x, select_y, value);
+ 		}
+
+        // Set parameters in included groups
+        
+		else if (xml->IsElement("group") && (equal_strings(GetXMLAttribute(xml, "name"), group_name) || equal_strings(group_name, "*"))) // Translate output name
+		{
+            const char * new_module = wildcard;
+            const char * new_parameter = parameter_name;
+
+			for (XMLElement * parameter = xml->GetContentElement("parameter"); parameter != NULL; parameter = parameter->GetNextElement("parameter"))
+			{
+				const char * n = GetXMLAttribute(parameter, "name");
+                
+				if (n!=NULL && (equal_strings(n, parameter_name) || equal_strings(n, "*")))
+				{
+ 					new_module = GetXMLAttribute(parameter, "targetmodule");
+					new_parameter = GetXMLAttribute(parameter, "target");
+                    
+					if (new_module == NULL)
+						new_module = wildcard;	// match all modules
+                    
+					if (new_parameter == NULL)
+						new_parameter = parameter_name;	// retain name
+				}
+			}
+            
+            SetParameter(xml, new_module, new_parameter, select_x, select_y, value);
+		}
+    }
+}
+
+
+
+bool
+Kernel::Precedes(Module * a, Module * b)
 {
     // Base case
+    
     for (Connection * c = connections; c != NULL; c = c->next)
         if (c->delay == 0 && c->source_io->module == a && c->target_io->module == b)
             return true;
-    // Transitivity test
+    
+    // Transitivity test (also checks for direct loop)
+    
     for (Connection * c = connections; c != NULL; c = c->next)
-        if (c->delay == 0 && c->source_io->module == a && Preceedes(c->target_io->module,  b))
+        if (c->delay == 0 && c->source_io->module == a && Precedes(c->target_io->module,  b))
             return true;
+    
     return false;
 }
 
@@ -2136,6 +2399,18 @@ Kernel::CalculateInputSizeY(Module_IO * i)
     return s;
 }
 
+
+
+void
+Kernel::DetectCycles()
+{
+    for (Module * m = modules; m != NULL; m = m->next)
+        if(Precedes(m, m))
+            Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself (directly or indirectly).\n", m->GetName(), m->GetClassName());
+}
+
+
+
 void
 Kernel::SortModules()
 {
@@ -2155,10 +2430,9 @@ Kernel::SortModules()
         // Find smallest module
         Module * sm = modules;
         for (Module * m = modules; m != NULL; m = m->next)
-        {
-            if (Preceedes(sm, m))
+            if (Precedes(sm, m))
                 sm = m;
-        }
+
         // Remove from list
         if (sm == modules)  // First
         {
@@ -2178,10 +2452,12 @@ Kernel::SortModules()
         }
     }
     modules = sorted_modules;
+
     // Check for loops
     for (Module * m = modules; m != NULL; m = m->next)
-        if (Preceedes(m, m))
+        if (Precedes(m, m))
             Notify(msg_fatal_error, "Module \"%s\" (%s) has a zero-delay connection to itself.\n", m->GetName(), m->GetClassName());
+
     // Create Thread Groups
     threadGroups = new ThreadGroup(this);
     for (Module * m = modules; m != NULL; m = m->next)
@@ -2202,14 +2478,6 @@ bool
 Kernel::InputConnected(Module * m, const char * input_name) // TODO: Test it ***
 {
     return m->GetInputArray(input_name, false) != NULL;
-    /*
-     if (connections == NULL)
-     return false;
-     for (Connection * c = connections; c != NULL; c = c->next)
-     if (c->target_io->module == m && equal_strings(input_name, c->target_io->name))
-     return true;
-     return false;
-     */
 }
 
 bool
@@ -2329,6 +2597,20 @@ Kernel::ListThreads()
 }
 
 void
+Kernel::ListWarningsAndErrors()
+{
+    if(global_warning_count > 1)
+        printf("IKAROS: %d WARNINGS.\n", global_warning_count);
+    else if(global_warning_count == 1)
+        printf("IKAROS: %d WARNING.\n", global_warning_count);
+    
+    if(global_error_count > 1)
+        printf("IKAROS: %d ERRORS.\n", global_error_count);
+    else if(global_error_count == 1)
+        printf("IKAROS: %d ERROR.\n", global_error_count);
+}
+
+void
 Kernel::ListScheduling()
 {
     if (!options->GetOption('l') && !options->GetOption('a')) return;
@@ -2419,6 +2701,7 @@ Kernel::Notify(int msg, const char * format, ...)
     {
         case msg_fatal_error:
             n = snprintf(message, 512, "ERROR: ");
+            global_error_count++;
             break;
         case msg_end_of_file:
             n = snprintf(message, 512, "END-OF-FILE: ");
@@ -2428,6 +2711,7 @@ Kernel::Notify(int msg, const char * format, ...)
             break;
         case msg_warning:
             n = snprintf(message, 512, "WARNING: ");
+            global_warning_count++;
             break;
         default:
             break;
@@ -2495,7 +2779,7 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     // iterate over all modules
     
     for (XMLElement * xml_module = group_xml->GetContentElement("module"); xml_module != NULL; xml_module = xml_module->GetNextElement("module"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, xml_module->GetAttribute("name"))) // also matches anonymous module as it should
+        if(tm_name==NULL || equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_module, "name"))) // also matches anonymous module as it should; change first test to *?
         {
             Module * tm = (Module *)(xml_module->aux);
             if (tm)
@@ -2512,16 +2796,16 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     
     bool connection_made = false;
     for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-        if(equal_strings(tm_name, "*") || equal_strings(tm_name, xml_group->GetAttribute("name"))) // Found group
+        if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
         {
             // iterate over all input elements
             for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                if(equal_strings(t_name, xml_input->GetAttribute("name"))) // Found input with target
+                if(equal_strings(t_name, GetXMLAttribute(xml_input, "name"))) // Found input with target
                 {
                     connection_made = true;
-                    const char * tm = xml_input->GetAttribute("targetmodule");
-                    const char * t = xml_input->GetAttribute("target");
-                    int d = string_to_int(xml_input->GetAttribute("delay")); // TODO: We should merge d with the range in d instead
+                    const char * tm = GetXMLAttribute(xml_input, "targetmodule");
+                    const char * t = GetXMLAttribute(xml_input, "target");
+                    int d = string_to_int(GetXMLAttribute(xml_input, "delay")); // TODO: We should merge d with the range in d instead
                     if(!equal_strings(t,""))
                         c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay);   // TODO: Extra delay should be replaced with a merge interval function
                     else
@@ -2531,15 +2815,15 @@ Kernel::Connect(XMLElement * group_xml, Module * sm, Module_IO * sio, const char
     
     if(!connection_made) // look of wildcard connections
         for (XMLElement * xml_group = group_xml->GetContentElement("group"); xml_group != NULL; xml_group = xml_group->GetNextElement("group"))
-            if(equal_strings(tm_name, "*") || equal_strings(tm_name, xml_group->GetAttribute("name"))) // Found group
+            if(equal_strings(tm_name, "*") || equal_strings(tm_name, GetXMLAttribute(xml_group, "name"))) // Found group
             {
                 // iterate over all input elements
                 for (XMLElement * xml_input = xml_group->GetContentElement("input"); xml_input != NULL; xml_input = xml_input->GetNextElement("input"))
-                    if(equal_strings("*", xml_input->GetAttribute("name"))) // Found input with target
+                    if(equal_strings("*", GetXMLAttribute(xml_input, "name"))) // Found input with target
                     {
-                        const char * tm = xml_input->GetAttribute("targetmodule");
-                        const char * t = xml_input->GetAttribute("target");
-                        int d = string_to_int(xml_input->GetAttribute("delay"));
+                        const char * tm = GetXMLAttribute(xml_input, "targetmodule");
+                        const char * t = GetXMLAttribute(xml_input, "target");
+                        int d = string_to_int(GetXMLAttribute(xml_input, "delay"));
  
                                                 if(!equal_strings(t,""))
                             c += Connect(xml_group, sm, sio, tm, (t ? t : t_name), delay, d+extra_delay);   // TODO: Extra delay should be replaced with a merge interval function
@@ -2640,23 +2924,23 @@ static int group_number = 0;
 void
 Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
 {
-    const char * name = group_xml->GetAttribute("name");
+    const char * name = GetXMLAttribute(group_xml, "name");
     if(name == NULL)
         group_xml->SetAttribute("name", create_formatted_string("Group-%d", group_number++));
 
     for (XMLElement * xml_node = group_xml->GetContentElement(); xml_node != NULL; xml_node = xml_node->GetNextElement())
         if (xml_node->IsElement("module"))	// Add module
         {
-            char * class_name = create_string(xml_node->GetAttribute("class"));
+            char * class_name = create_string(GetXMLAttribute(xml_node, "class"));
             if (!equal_strings(class_name, current_class))  // Check that we are not in a class file
             {
 				xml_node = BuildClassGroup(xml_node, class_name);
             }
             
-			else if (class_name  != NULL)	// Create the module using standard class
+			else if (class_name != NULL)	// Create the module using standard class
 			{
 				Parameter * parameter = new Parameter(this, xml_node);
-				Module * m = CreateModule(classes, class_name, xml_node->GetAttribute("name"), parameter);
+				Module * m = CreateModule(classes, class_name, GetXMLAttribute(xml_node, "name"), parameter);
 				delete parameter;
 				if (m == NULL)
 					Notify(msg_warning, "Could not create module: Class \"%s\" does not exist.\n", class_name);
@@ -2665,6 +2949,10 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
 				xml_node->aux = (void *)m;
 				AddModule(m);
 			}
+            else  // TODO: could add check for command line values here
+            {
+                Notify(msg_warning, "Could not create module: Class name is missing.\n");
+            }
             destroy_string(class_name);
         }
         else if (xml_node->IsElement("group"))	// Add group
@@ -2674,11 +2962,11 @@ Kernel::BuildGroup(XMLElement * group_xml, const char * current_class)
     
     for (XMLElement * xml_connection = group_xml->GetContentElement("connection"); xml_connection != NULL; xml_connection = xml_connection->GetNextElement("connection"))
     {
-        const char * sm_name = xml_connection->GetAttribute("sourcemodule");
-        const char * s_name = xml_connection->GetAttribute("source");
-        const char * tm_name = xml_connection->GetAttribute("targetmodule");
-        const char * t_name = xml_connection->GetAttribute("target");
-        const char * delay = xml_connection->GetAttribute("delay");
+        const char * sm_name    = GetXMLAttribute(xml_connection, "sourcemodule");
+        const char * s_name     = GetXMLAttribute(xml_connection, "source");
+        const char * tm_name    = GetXMLAttribute(xml_connection, "targetmodule");
+        const char * t_name     = GetXMLAttribute(xml_connection, "target");
+        const char * delay      = GetXMLAttribute(xml_connection, "delay");
         
         Module * sm;
         Module_IO * sio;
@@ -2725,6 +3013,20 @@ Kernel::ReadXML()
         return;
     }
     // Build The Main Group
+    
+    if(!xml->GetAttribute("name")) // This test is necessary since we are not alllowed to change a value of an attribute
+    {
+        const char * name = GetXMLAttribute(xml, "name"); // Instantiate name and title from command line options if not set in the file
+        if(name)
+            xml->SetAttribute("name", name);
+    }
+    
+    if(!xml->GetAttribute("title"))
+    {
+        const char * title = GetXMLAttribute(xml, "title");
+        if(title)
+            xml->SetAttribute("title", title);
+    }
     
     BuildGroup(xml);
     if (options->GetOption('x'))

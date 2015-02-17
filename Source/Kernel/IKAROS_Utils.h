@@ -83,6 +83,12 @@ float **	reset_matrix(float ** m, int sizex, int sizey);
 float *     set_array(float * a, float v, int size);
 float **    set_matrix(float ** m, float v, int sizex, int sizey);
 
+float **    set_row(float ** m, float * a, int row, int sizex);
+float **    set_col(float ** m, float * a, int col, int sizey);
+
+float *     get_row(float * a, float ** m, int row, int sizex);
+float *     get_col(float * a, float ** m, int col, int sizey);
+
 // Delay Line
 
 class DelayLine
@@ -126,6 +132,8 @@ public:
     char *  GetArgument(char c);
     void    ResetOption(char c);
 
+    const char *  GetValue(const char * a);
+
     char *  GetWorkingDirectory();
     char *  GetBinaryDirectory();
     
@@ -133,10 +141,15 @@ public:
     char *  GetFileDirectory();
     char *  GetFileName();
     
+    
     void    Print();
 private:
     bool    option[256];
     char *  argument[256];
+    
+    char *  attribute[32];
+    char *  value[32];
+    
     char    working_dir[1024];
     char *  binary_dir;
     char *  file_path;
