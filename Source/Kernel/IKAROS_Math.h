@@ -407,9 +407,14 @@ namespace ikaros
     void        draw_circle(float ** red, float ** green, float ** blue, int sizex, int sizey, int x, int y, int radius, float r, float g, float b);
 
     // linear algebra - TAT
-    int eigs(float **result, float **matrix, int sizex, int sizey);
-    void sprand(float *array, int size, float fillfactor);
-    void gen_weight_matrix(float **returnmat, int dim, float fillfactor);
+    int 			eigs(float **result, float **matrix, int sizex, int sizey);
+    void 		sprand(float *array, int size, float fillfactor);
+    void 		gen_weight_matrix(float **returnmat, int dim, float fillfactor);
+    float *		tanh(float *array, int size);
+    bool equal(float a, float b, float tolerance);
+	 bool equal(float *a, float *b, int size, float tolerance);
+	 bool equal(float *a, float b, int size, float tolerance);
+	 bool equal(float **a, float **b, int size_x, int size_y, float tolerance);
 
 }
 

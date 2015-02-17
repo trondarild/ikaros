@@ -4398,5 +4398,48 @@ namespace ikaros
 	    }
 	    return array;
 	}
+
+	bool 
+    equal(float a, float b, float tolerance)
+    { 
+    	return abs((float)a-b) <= tolerance;
+    }
+    
+    bool 
+	 equal(float *a, float *b, int size, float tolerance)
+	 {
+	 	 bool retval = true;
+	    //for (int i = size; i-- && retval;)
+	    for (int i = 0; i < size && retval; ++i)
+	    {
+	        retval = equal(a[i], b[i], tolerance);
+	     	  if(!retval) break;
+	    }
+	    return retval;
+	 }
+
+	 bool
+	 equal(float *a, float b, int size, float tolerance)
+	 {
+	 	bool retval = true;
+	 	for (int i = 0; i < size; ++i)
+	 	{
+	 		retval = equal(a[i], b, tolerance);
+	 		if(!retval) break;
+	 	}
+	 	return retval;
+	 }
+
+	 bool 
+	 equal(float **a, float **b, int size_x, int size_y, float tolerance)
+	 {
+	 	bool retval = true;
+	 	for (int i = 0; i < size_y; ++i)
+	 	{
+	 		retval = equal(a[i], b[i], size_x, tolerance);
+	 		if(!retval) break;
+	 	}
+	 	return retval;
+	 }
 }
 
