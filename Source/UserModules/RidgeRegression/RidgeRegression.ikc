@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="RidgeRegression" description="minimal example module">
+
+	<description type="text">
+		Module calculates ridge regression for an input data collection and a target,
+        with a given (Tychonov)alpha adjustment parameter. Will output a weight matrix that can produce the target.
+
+		Note that inputs have to be column major, so same as matlab code.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="RidgeRegression"
+			name="RidgeRegression"
+			output_x="10"
+			output_y="10"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="output_x" type="int" default="10" description="Number of columns of output matrix" />
+	<parameter name="output_y" type="int" default="1" description="Number of rows of output matrix" />
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The input data to use for calculation" />
+	<input name="TARGET" description="The target matrix" />
+	<input name="ALPHA" description="The alpha adjustment parameter" />
+
+	<output name="OUTPUT" description="The optimized output weight matrix that can produce the target" />
+
+	<module class="RidgeRegression" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>RidgeRegression.h</file>
+   		<file>RidgeRegression.cc</file>
+   		<file>RidgeRegression.ikc</file>
+   </files>
+
+</group>
+

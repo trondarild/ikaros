@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<group title="RidgeRegression Example">
+	
+		<module
+			class = "Constant"
+			name = "Alpha"
+			outputsize  = "1"
+			data  = "0.001"
+		/>
+		<module
+		   class = "Randomizer"
+		   name = "InputMatrix"
+		   outputsize_x = "2"
+		   outputsize_y = "8"
+		   min = "0"
+		   max = "1"
+		/>
+      <module
+         class = "Constant"
+         name = "InputConstant"
+         data  = "0.84019   0.78310   0.91165   0.33522   0.27777   0.47740   0.36478   0.95223;
+                0.39438   0.79844   0.19755   0.76823   0.55397   0.62887   0.51340   0.91619"
+      />
+
+      <module
+      class = "Constant"
+      name = "TargetConstant"
+      data  = "0.635712   0.141603   0.016301   0.137232   0.156679   0.129790   0.998924  0.512932"
+      />
+      
+		<module
+		   class = "Randomizer"
+		   name = "Target"
+		   outputsize_x = "2"
+		   outputsize_y = "8"
+		   min = "0"
+		   max = "1"
+		/>
+
+		<module
+			class="RidgeRegression"
+			name="RidgeRegression"
+			output_x="2"
+			output_y="1"
+			debug = "true"
+		/>
+		
+        <connection sourcemodule = "Alpha" source = "OUTPUT" targetmodule = "RidgeRegression" target = "ALPHA" />
+        <connection sourcemodule = "InputConstant" source = "OUTPUT" targetmodule = "RidgeRegression" target = "INPUT" />
+        <connection sourcemodule = "TargetConstant" source = "OUTPUT" targetmodule = "RidgeRegression" target = "TARGET" />
+
+		<view name="View">
+			<object
+			   class="Grid"
+			   module="InputConstant"
+			   source="OUTPUT"
+			   max="1"
+			   x="0"
+			   y="0"
+			   color="LUT_fire"
+			/>
+			<object
+			   class="Grid"
+			   module="TargetConstant"
+			   source="OUTPUT"
+			   max="1"
+			   x="1"
+			   y="0"
+			   color="LUT_fire"
+			/>
+			<object
+			   class="Grid"
+			   module="RidgeRegression"
+			   source="OUTPUT"
+			   max="1"
+			   x="0"
+			   y="1"
+			   color="LUT_fire"
+			/>
+		</view>
+
+</group>
+ 
