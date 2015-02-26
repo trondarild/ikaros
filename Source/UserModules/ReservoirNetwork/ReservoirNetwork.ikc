@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<group name="ReservoirNetwork" description="minimal example module">
+
+	<description type="text">
+		Module that implements a reservoir neural network module.
+		Reservoirs are randomly connected recurrent networks.
+		Output is a *dimension* x 1 matrix with the network state
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ReservoirNetwork"
+			name="ReservoirNetwork"
+			dimension = "100"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="dimension" type="int" default="100" description="The number of neurons" />
+	<parameter name="bias_scaling" type="float" default="0.2" description="Scaling of bias" />
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The first input" />
+	<input name="W" description="Weight matrix which connects neurons" />
+	<input name="W_IN" description="Input weight matrix which maps input into network" />
+	<input name="BIAS" description="Bias vector" />
+
+
+	<output name="OUTPUT" description="Network state" description="Copy of network state" />
+
+	<module class="ReservoirNetwork" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>ReservoirNetwork.h</file>
+   		<file>ReservoirNetwork.cc</file>
+   		<file>ReservoirNetwork.ikc</file>
+   </files>
+
+</group>
+

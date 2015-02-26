@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<group title="ReservoirNetwork Example">
+	
+		<module
+			class = "Constant"
+			name = "WeighMatrixConst"
+			data  = "0,0,0,0,0,0,0,0.615342,0,0.186242;0,0,0,0,0,0,0,0,0,0;0,0,0,0.664109,0,0,0,0,0,0;0.945171,0,0,0,0,0,0,0,0,0;0,0,0,0,0.562886,0,0,0,0,0.945665;0,0,0,0,0,0,0,0,0.0665635,0;0,0,0,0,0,0,0,0,0,0;0,0,0.0725825,0.682555,0,0,0,0,0.671324,0;0,0,0,0,0,0,0,0,0,0;0,0,0,0,0,0,0,0,0,0"
+		/>
+		<module
+			class = "Constant"
+			name = "InputWeight"
+			data  = "0.407647;0.089778;0.055980;0.251186;0.055747;0.443907;0.792647;0.647098;0.142373;0.692081"
+		/>
+        <module
+        class = "Constant"
+        name = "BiasWeight"
+        data  = "0.407647;0.089778;0.055980;0.251186;0.055747;0.443907;0.792647;0.647098;0.142373;0.692081"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen"
+		  type        =   "sin"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "ReservoirNetwork"
+			name = "ReservoirNetworkInstance"
+			dimension  = "10"
+			bias_scaling  = "0.2"
+		/>
+		
+        <connection sourcemodule = "WeighMatrixConst" source = "OUTPUT" targetmodule = "ReservoirNetworkInstance" target = "W" />
+        <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "ReservoirNetworkInstance" target = "INPUT" />
+        <connection sourcemodule = "InputWeight" source = "OUTPUT" targetmodule = "ReservoirNetworkInstance" target = "W_IN" />
+        <connection sourcemodule = "BiasWeight" source = "OUTPUT" targetmodule = "ReservoirNetworkInstance" target = "BIAS" />
+
+		<view name="View">
+			<object class="Plot " 
+				module="SinGen" 
+				source="OUTPUT" 
+				x="0" y="0" w="1" h="1"
+				min="-1"
+				max="1"
+			/>
+			
+			<object
+			   class="Grid"
+			   module="ReservoirNetworkInstance"
+			   source="OUTPUT"
+			   x="0"
+			   y="1"
+			   color="LUT_fire"
+			/>
+		</view>
+
+</group>
+ 
