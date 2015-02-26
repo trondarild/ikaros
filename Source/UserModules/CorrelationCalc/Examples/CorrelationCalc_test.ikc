@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<group title="CorrelationCalc Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			outputsize  = "1"
+			data  = "100"
+		/>
+		<module
+	      class = "Randomizer"
+	      name = "Randomizer"
+	      outputsize_x = "10"
+	      outputsize_y = "100"
+	      min = "0"
+	      max = "1"
+	  />
+      <module
+      class = "Constant"
+      name = "InputConstant"
+      data  = "0.84019   0.78310   0.91165   0.33522   0.27777   0.47740   0.36478   0.95223;
+      0.39438   0.79844   0.19755   0.76823   0.55397   0.62887   0.51340   0.91619"
+      />
+		
+		<module
+			class = "CorrelationCalc"
+			name = "CorrelationCalcInstance"
+			
+		/>
+		
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "CorrelationCalcInstance" target = "SCALE" />
+        <connection sourcemodule = "InputConstant" source = "OUTPUT" targetmodule = "CorrelationCalcInstance" target = "INPUT" />
+
+		<view name="View">
+			<object
+			   class="Grid"
+			   module="InputConstant"
+			   source="OUTPUT"
+			   x="0"
+			   y="0"
+			   color="LUT_fire"
+			/>
+			<object
+			   class="Grid"
+			   module="CorrelationCalcInstance"
+			   source="OUTPUT"
+			   x="0"
+			   y="1"
+			   color="LUT_fire"
+			/>
+		</view>
+
+</group>
+ 

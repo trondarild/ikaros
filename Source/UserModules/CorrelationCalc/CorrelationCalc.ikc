@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<group name="CorrelationCalc" description="minimal example module">
+
+	<description type="text">
+		Module that calculates correlation matrix, scaled by a (inverse scalar) factor. 
+		It calculates
+		(A*A')/scale
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="CorrelationCalc"
+			name="CorrelationCalc"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The matrix to do correlation on input" />
+	<input name="SCALE" description="The scaling factor" />
+
+	<output name="OUTPUT" description="The output"  />
+
+	<module class="CorrelationCalc" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>CorrelationCalc.h</file>
+   		<file>CorrelationCalc.cc</file>
+   		<file>CorrelationCalc.ikc</file>
+   </files>
+
+</group>
+

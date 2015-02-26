@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="SparseMatrix" description="minimal example module">
+
+	<description type="text">
+		Module that creates a square sparse matrix with filled elements drawn from a normal distribution.
+		
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="SparseMatrix"
+			name="SparseMatrix"
+			dimension = "10"
+			fillfactor = "0.1"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="dimension" type="int" default="10" description="The  dimension of the matrix" />
+	<parameter name="fillfactor" type="float" default="0.1" description="Ratio of non-zero elements" />
+	
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	
+	<output name="OUTPUT" description="The matrix" size_param_x="dimension" size_param_y="dimension"/>
+
+	<module class="SparseMatrix" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>SparseMatrix.h</file>
+   		<file>SparseMatrix.cc</file>
+   		<file>SparseMatrix.ikc</file>
+   </files>
+
+</group>
+

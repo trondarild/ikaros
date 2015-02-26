@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<group name="ConceptorCalc" description="minimal example module">
+
+	<description type="text">
+		Module that calculates conceptor matrix for input.
+		C = R*inv(R+aperture^-2*I)
+
+		Output is a square matrix with dimension of input.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="ConceptorCalc"
+			name="ConceptorCalc"
+			debug = "true"
+		/>
+	</example>
+
+	
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The (square) correlation matrix input" />
+	<input name="APERTURE" description="The aperture factor. This scales the singular values " />
+
+	<output name="OUTPUT" description="The conceptor matrix output" size_set="INPUT"/>
+
+	<module class="ConceptorCalc" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>ConceptorCalc.h</file>
+   		<file>ConceptorCalc.cc</file>
+   		<file>ConceptorCalc.ikc</file>
+   </files>
+
+</group>
+
