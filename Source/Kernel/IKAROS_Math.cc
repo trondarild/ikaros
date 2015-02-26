@@ -4307,6 +4307,23 @@ namespace ikaros
 	    }
 	    return array;
 	}
+    
+    float **
+    tanh(float ** matrix, int sizex, int sizey)
+    {
+        for (int i=0; i < sizey; i++) {
+            tanh(matrix[i], sizex);
+        }
+        return matrix;
+    }
+
+	float *		
+	atanh(float *array, int size)
+	{
+		for (int i = 0; i < size; ++i)
+			array[i] = atanhf(array[i]);
+		return array;
+	}
 
 	bool 
     equal(float a, float b, float tolerance)
@@ -4350,6 +4367,25 @@ namespace ikaros
 	 	}
 	 	return retval;
 	 }
+    
+    //  Taken from: http://www.mymathlib.com/
+    //  Arguments:                                                                //
+    //     double *A    Pointer to the first element of the matrix A[n][n].       //
+    //     int    ncols The number of columns of the matrix A.                    //
+    //     double *S    Destination address of the submatrix.                     //
+    //     int    mrows The number of rows matrix S.                              //
+    //     int    mcols The number of columns of the matrix S.                    //
+    //     int    row   The row of A corresponding to the first row of S.         //
+    //     int    col   The column of A corresponding to the first column of S.   //
+    //                                                                            //
+    void set_submatrix(float *A, int ncols, float *S, int mrows, int mcols,
+                       int row, int col)
+    {
+        int i,j;
+        
+        for ( A += row * ncols + col, i = 0; i < mrows; A += ncols, i++)
+            for (j = 0; j < mcols; j++) *(A + j) = *S++;
+    }
 
 }
 

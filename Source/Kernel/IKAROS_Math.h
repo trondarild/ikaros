@@ -411,14 +411,19 @@ namespace ikaros
 
 
     // linear algebra - TAT
-    int 			eigs(float **result, float **matrix, int sizex, int sizey);
+    int 		eigs(float **result, float **matrix, int sizex, int sizey);
     void 		sprand(float *array, int size, float fillfactor);
     void 		gen_weight_matrix(float **returnmat, int dim, float fillfactor);
+    
+    // various - TAT
     float *		tanh(float *array, int size);
-    bool equal(float a, float b, float tolerance);
-	 bool equal(float *a, float *b, int size, float tolerance);
-	 bool equal(float *a, float b, int size, float tolerance);
-	 bool equal(float **a, float **b, int size_x, int size_y, float tolerance);
+    float **    tanh(float ** matrix, int sizex, int sizey);
+    float *		atanh(float *array, int size);
+    bool        equal(float a, float b, float tolerance);
+    bool        equal(float *a, float *b, int size, float tolerance);
+    bool        equal(float *a, float b, int size, float tolerance);
+    bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
+    void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
 
 }
 
