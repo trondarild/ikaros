@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<group title="Collector Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			data  = "1.01"
+		/>
+
+		<module
+			class = "Collector"
+			name = "CollectorInstance_x"
+			collection_direction  = "x"
+			size  = "3"
+		/>
+        <module
+        class = "Collector"
+        name = "CollectorInstance_y"
+        collection_direction  = "y"
+        size  = "3"
+		/>
+		
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "CollectorInstance_x" target = "INPUT" />
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "CollectorInstance_y" target = "INPUT" />
+
+		<view name="View">
+            <object
+                class="Grid"
+                module="CollectorInstance_x"
+                source="OUTPUT"
+               max="1"
+               x="0"
+               y="0"
+               color="LUT_fire"
+            />
+            <object
+                class="Grid"
+                module="CollectorInstance_y"
+                source="OUTPUT"
+               max="1"
+               x="1"
+               y="0"
+               color="LUT_fire"
+            />
+           
+		</view>
+
+</group>
+ 
