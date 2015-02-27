@@ -412,7 +412,7 @@ namespace ikaros
 
     // linear algebra - TAT
     int 		eigs(float **result, float **matrix, int sizex, int sizey);
-    void 		sprand(float *array, int size, float fillfactor);
+    void 		sprand(float *array, int size, float fillfactor, float min, float max, float meanval, float var);
     void 		gen_weight_matrix(float **returnmat, int dim, float fillfactor);
     
     // various - TAT

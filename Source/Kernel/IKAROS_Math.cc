@@ -4253,11 +4253,12 @@ namespace ikaros
 	// generates a sparse random matrix with values drawn from
 	// the normal distribution, centered at 0.5 
 	void
-	sprand(float *array, int size, float fillfactor)
+	sprand(float *array, int size, float fillfactor, float min, float max, float meanval, float var)
 	{
 	    std::default_random_engine generator;
 	    // normal distro with mean = 0.5 and
-	    std::normal_distribution<float> distribution(0.5,0.5);
+	    //std::normal_distribution<float> distribution(0.5,0.5);
+        std::normal_distribution<float> distribution(meanval, var);
 
 	    int numfilledelements = (int)size*fillfactor;
 	    std::vector<int> indeces;
@@ -4274,7 +4275,7 @@ namespace ikaros
 	            float value=-1;
 	            do {
 	                value = distribution(generator);
-	            } while ((value<0.0)||(value>1.0));
+	            } while ((value<min)||(value>max));
 	            array[index] = value;
 	        }
 	    }
@@ -4287,7 +4288,7 @@ namespace ikaros
 	    float spectralradius=0;
 	    int maxiter=10;
 	    do {
-	        sprand(returnmat[0], dim*(dim), fillfactor);
+	        sprand(returnmat[0], dim*(dim), fillfactor, 0.f, 1.f, 0.5f, 0.5f);
 	        //print_matrix("ikaros::::sprand", returnmat, dim, dim);
 	        int info = eigs(eigenvals, returnmat, dim, dim);
 	        //print_matrix("ikaros::::eigs", eigenvals, dim, 1);
