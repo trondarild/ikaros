@@ -35,6 +35,7 @@ Randomizer::Init()
     
     output		=	GetOutputArray("OUTPUT");
     outputsize	=	GetOutputSize("OUTPUT");	// Use one-dimensional internally
+    done = false;
 }
 
 
@@ -42,8 +43,16 @@ Randomizer::Init()
 void
 Randomizer::Tick()
 {
-    if(GetTick() % interval == 0)
-        random(output, minimum, maximum, outputsize);
+    // do only once if interval set to -1
+    if (interval == -1) {
+        if(!done) {
+            random(output, minimum, maximum, outputsize);
+            done = true;
+        }
+    } else {
+        if(GetTick() % interval == 0)
+            random(output, minimum, maximum, outputsize);
+    }
 }
 
 

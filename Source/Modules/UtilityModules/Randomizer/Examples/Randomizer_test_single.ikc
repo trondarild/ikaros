@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<group>
+	
+		<module
+			class = "Randomizer"
+			name = "R"
+			outputsize = "10"
+			minimum = "0"
+			maximum = "1"
+            interval = "0"
+		/>
+
+
+
+		<view name="V1">
+			<object class="BarGraph" module="R" source="OUTPUT" x="0" y="0" />
+		</view>
+</group>
+ 
