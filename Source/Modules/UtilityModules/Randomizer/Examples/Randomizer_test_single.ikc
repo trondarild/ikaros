@@ -8,7 +8,7 @@
 			outputsize = "10"
 			minimum = "0"
 			maximum = "1"
-            interval = "0"
+            interval = "-1"
 		/>
 
 
