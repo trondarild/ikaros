@@ -27,6 +27,10 @@
 	<parameter name="min" type="int" description="Minimum value of the output (inclusive)" default="0" />
 	<parameter name="max" type="int" description="Maximum value of the output (inclusive)" default="1" />
     <parameter name="interval" type="int" description="How often to change the output" default="1" />
+    <parameter name="distribution" type="char" description="Which distribution to use. Can be either 'uniform' or 'gaussian'" default="uniform" />
+    <parameter name="meanval" type="float" description="Mean of gaussian distribution" default="0.5" />
+    <parameter name="variance" type="float" description="Variance of gaussian distribution" default="0.5" />
+    
 	
 	<output name="OUTPUT" description="The output with random values" size_param="outputsize" size_param_x="outputsize_x" size_param_y="outputsize_y"/>
 

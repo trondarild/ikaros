@@ -26,17 +26,23 @@
 
 using namespace ikaros;
 
+const char *c_uniform = "uniform";
+const char *c_gaussian = "gaussian";
 void
 Randomizer::Init()
 {
     Bind(maximum, "max");
     Bind(minimum, "min");
     Bind(interval, "interval");
+    distribution = GetValue("distribution");
+    Bind(meanval, "mean");
+    Bind(variance, "variance");
     
     output		=	GetOutputArray("OUTPUT");
     outputsize	=	GetOutputSize("OUTPUT");	// Use one-dimensional internally
     done = false;
 }
+
 
 
 
@@ -46,12 +52,19 @@ Randomizer::Tick()
     // do only once if interval set to -1
     if (interval == -1) {
         if(!done) {
-            random(output, minimum, maximum, outputsize);
+            if(equal_strings(distribution, c_uniform))
+               random(output, minimum, maximum, outputsize);
+            else
+                ikaros::sprand(output, outputsize, 1.f, minimum, maximum, meanval, variance);
             done = true;
         }
     } else {
-        if(GetTick() % interval == 0)
-            random(output, minimum, maximum, outputsize);
+        if(GetTick() % interval == 0){
+            if(equal_strings(distribution, c_uniform))
+                random(output, minimum, maximum, outputsize);
+            else
+                ikaros::sprand(output, outputsize, 1.f, minimum, maximum, meanval, variance);
+        }
     }
 }
 

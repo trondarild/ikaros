@@ -36,6 +36,9 @@ public:
     float	maximum;
     
     int     interval;
+    const char* distribution;
+    float   meanval;
+    float   variance;
 
     Randomizer(Parameter * p) : Module(p) {}
     virtual ~Randomizer() {}
