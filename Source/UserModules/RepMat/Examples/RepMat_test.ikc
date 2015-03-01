@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<group title="RepMat Example">
+	
+		<module
+			class = "Constant"
+			name = "MyConstant"
+			data  = "0.1 0.2;0.3 0.4"
+		/>
+
+        <module
+            class = "Constant"
+            name = "Vector"
+            data  = "0.1; 0.2"
+        />
+
+		<module
+			class = "RepMat"
+			name = "RepMatInstance"
+			replicate_x="2"
+            replicate_y="2"
+		/>
+        <module
+            class = "RepMat"
+            name = "Collector"
+            replicate_x="10"
+            replicate_y="1"
+		/>
+		
+        <connection sourcemodule = "MyConstant" source = "OUTPUT" targetmodule = "RepMatInstance" target = "INPUT" />
+        <connection sourcemodule = "Vector" source = "OUTPUT" targetmodule = "Collector" target = "INPUT" />
+		<view name="View">
+            <object
+                class="Grid"
+                module="RepMatInstance"
+                source="OUTPUT"
+               max="1"
+               x="0"
+               y="0"
+               color="LUT_fire"
+            />
+            <object
+                class="Grid"
+                module="Collector"
+                source="OUTPUT"
+                max="1"
+                x="1"
+                y="0"
+                color="LUT_fire"
+            />
+
+		</view>
+
+</group>
+

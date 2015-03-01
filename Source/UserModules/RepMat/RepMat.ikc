@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<group name="RepMat" description="minimal example module">
+
+	<description type="text">
+		Module that replicates an input matrix specified number of times
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="RepMat"
+			name="RepMat"
+			replicate_x = "2"
+            replicate_y = "2"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="replicate_x" type="int" default="1" description="Number of times to replicate in x direction" />
+    <parameter name="replicate_y" type="int" default="1" description="Number of times to replicate in y direction" />
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The input" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="RepMat" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>RepMat.h</file>
+   		<file>RepMat.cc</file>
+   		<file>RepMat.ikc</file>
+   </files>
+
+</group>
+
