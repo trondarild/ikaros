@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<group title="MatrixList Example">
+	
+		<module
+			class = "Constant"
+			name = "Select0"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		
+		<module
+		   class = "Randomizer"
+		   name = "Randomizer"
+		   outputsize_x = "4"
+		   outputsize_y = "4"
+           
+		   min = "0"
+		   max = "1"
+		/>
+
+		<module
+			class = "MatrixList"
+			name = "MatrixList00"
+			size = "3"
+			store_on_change = "true"
+			default_identity = "true"
+			debug = "true"
+		/>
+		
+		
+        <connection sourcemodule = "Select0" source = "OUTPUT" targetmodule = "MatrixList00" target = "SELECT" />
+        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "MatrixList00" target = "INPUT" />
+
+      
+		<view name="View">
+			<object
+			    class="Table" 
+			    module="MatrixList00"
+			    source="OUTPUT"
+			    x="0"
+			    y="0" 
+			  />
+		
+			   <object
+				    class="Slider"
+				    module="Select0"
+				    parameter="data"
+				    x="0"
+				    y="1" 
+				    min="0"
+				    max="2"
+				    steps="3"
+				  />
+		
+		</view>
+
+</group>
+ 

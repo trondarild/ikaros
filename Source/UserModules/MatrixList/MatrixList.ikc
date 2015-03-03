@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<group name="MatrixList" description="minimal example module">
+
+	<description type="text">
+		Module that stores a list of square matrices and outputs the matrix with
+		given index.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="MatrixList"
+			name="MatrixList"
+			size = "10"
+			store_on_change = "true"
+			default_identity = "true"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="size" type="int" default="10" description="The number of matrices to store" />
+	<parameter name="store_on_change" type="bool" default="true" description="Whether to only store if input changed" />
+	<parameter name="default_identity" type="bool" default="true" description="Will set first matrix in list to identity" />
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The input" />
+	<input name="SELECT" description="The input" />
+
+	<output name="OUTPUT" description="The output" size_set="INPUT" />
+
+	<module class="MatrixList" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>MatrixList.h</file>
+   		<file>MatrixList.cc</file>
+   		<file>MatrixList.ikc</file>
+   </files>
+
+</group>
+

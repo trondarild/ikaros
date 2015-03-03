@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+
+<group title="MatrixList Example">
+	
+		<module
+			class = "Constant"
+			name = "Select0"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		<module
+			class = "Constant"
+			name = "Select1"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		<module
+			class = "Constant"
+			name = "Select2"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		<module
+			class = "Constant"
+			name = "Select3"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		<module
+		   class = "Randomizer"
+		   name = "Randomizer"
+		   outputsize_x = "4"
+		   outputsize_y = "4"
+		   min = "0"
+		   max = "1"
+		/>
+
+		<module
+			class = "MatrixList"
+			name = "MatrixList00"
+			size = "4"
+			store_on_change = "false"
+			default_identity = "false"
+			debug = "true"
+		/>
+		<module
+			class="MatrixList"
+			name="MatrixList01"
+			size = "4"
+			store_on_change = "false"
+			default_identity = "true"
+			debug = "false"
+		/>
+		<module
+			class="MatrixList"
+			name="MatrixList10"
+			size = "4"
+			store_on_change = "true"
+			default_identity = "false"
+			debug = "false"
+		/>
+		<module
+			class="MatrixList"
+			name="MatrixList11"
+			size = "4"
+			store_on_change = "true"
+			default_identity = "true"
+			debug = "false"
+		/>
+		
+        <connection sourcemodule = "Select0" source = "OUTPUT" targetmodule = "MatrixList00" target = "SELECT" />
+        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "MatrixList00" target = "INPUT" />
+
+        <connection sourcemodule = "Select1" source = "OUTPUT" targetmodule = "MatrixList01" target = "SELECT" />
+        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "MatrixList01" target = "INPUT" />
+
+        <connection sourcemodule = "Select2" source = "OUTPUT" targetmodule = "MatrixList10" target = "SELECT" />
+        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "MatrixList10" target = "INPUT" />
+
+        <connection sourcemodule = "Select3" source = "OUTPUT" targetmodule = "MatrixList11" target = "SELECT" />
+        <connection sourcemodule = "Randomizer" source = "OUTPUT" targetmodule = "MatrixList11" target = "INPUT" />
+
+		<view name="View">
+			<object
+			    class="Table" 
+			    module="MatrixList00"
+			    source="OUTPUT"
+			    x="0"
+			    y="0" 
+			  />
+			  <object
+			    class="Table" 
+			    module="MatrixList01"
+			    source="OUTPUT"
+			    x="1"
+			    y="0" 
+			  />
+			  <object
+			    class="Table" 
+			    module="MatrixList10"
+			    source="OUTPUT"
+			    x="2"
+			    y="0" 
+			  />
+			  <object
+			    class="Table" 
+			    module="MatrixList11"
+			    source="OUTPUT"
+			    x="3"
+			    y="0" 
+			  />
+
+			   <object
+				    class="Slider" 
+				    module="Select0"
+				    parameter="data"
+				    x="0"
+				    y="1" 
+				    min="0"
+				    max="3"
+				    step="4"
+				  />
+			<object
+				    class="Slider" 
+				    module="Select1"
+				    parameter="data"
+				    x="1"
+				    y="1" 
+				    min="0"
+				    max="3"
+				    step="4"
+				  />
+			<object
+				    class="Slider" 
+				    module="Select2"
+				    parameter="data"
+				    x="2"
+				    y="1" 
+				    min="0"
+				    max="3"
+				    step="4"
+				  />
+			<object
+				    class="Slider" 
+				    module="Select3"
+				    parameter="data"
+				    x="3"
+				    y="1" 
+				    min="0"
+				    max="3"
+				    step="4"
+				  />	  
+		</view>
+
+</group>
+ 
