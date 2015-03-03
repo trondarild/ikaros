@@ -31,7 +31,7 @@ Submatrix::SetSizes()
     int sx	= GetInputSizeX("INPUT");
     int sy	= GetInputSizeY("INPUT");
 
-    if(GetValue("kernel_size"))
+    if(GetIntValue("kernel_size")!=0)
     {
         kernel_size = GetIntValue("kernel_size");
 
@@ -48,10 +48,10 @@ Submatrix::SetSizes()
         y1		=   GetIntValue("y1");
     }
     
-    if(x1<x0)
+    if(x1<=x0)
         Notify(msg_fatal_error, "Submatrix: Illegal range for x.");
 
-    if(y1<y0)
+    if(y1<=y0)
         Notify(msg_fatal_error, "Submatrix: Illegal range for y.");
     
     SetOutputSize("OUTPUT", x1-x0, y1-y0);
@@ -62,9 +62,12 @@ Submatrix::SetSizes()
 void
 Submatrix::Init()
 {
-    offset_x		=   GetFloatValue("offset_x", 0);
-    offset_y		=   GetFloatValue("offset_y", 0);
-    direction		=   GetFloatValue("direction", 1);
+    //offset_x		=   GetFloatValue("offset_x", 0);
+    //offset_y		=   GetFloatValue("offset_y", 0);
+    //direction		=   GetFloatValue("direction", 1);
+    Bind(offset_x, "offset_x");
+    Bind(offset_y, "offset_y");
+    Bind(direction, "direction");
 
     input		= GetInputMatrix("INPUT");
     shift		= GetInputArray("SHIFT");
@@ -73,6 +76,7 @@ Submatrix::Init()
 
     size_x      = GetOutputSizeX("OUTPUT");
     size_y      = GetOutputSizeY("OUTPUT");
+
 }
 
 
@@ -96,7 +100,7 @@ Submatrix::Tick()
     {
         for(int i=0; i<size_x; i++)
             for(int j=0; j<size_y; j++) // TODO: This loop can be optimized  using copy array for larger matrices
-                output[j][i] = input[j+x0][i+y0];
+                output[j][i] = input[j+y0][i+x0];
     }
 }
 
