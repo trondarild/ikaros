@@ -424,6 +424,7 @@ namespace ikaros
     bool        equal(float *a, float b, int size, float tolerance);
     bool        equal(float **a, float **b, int size_x, int size_y, float tolerance);
     void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
+    void        get_submatrix(float *S, int mrows, int mcols, float *A, int ncols, int row, int col);
 
 }
 
