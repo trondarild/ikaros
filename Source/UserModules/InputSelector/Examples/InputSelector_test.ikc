@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<group title="InputSelector Example">
+	
+		<module
+			class = "Constant"
+			name = "State"
+			outputsize  = "1"
+			data  = "0"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SquareGen"
+		  type        =   "square"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen"
+		  type        =   "sin"
+		  frequency  =  "0.1"
+		  offset      =   "0.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+		<module
+			class = "InputSelector"
+			name = "InputSelectorInstance"
+		/>
+		
+        <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "InputSelectorInstance" target = "INPUT" />
+        <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "InputSelectorInstance" target = "INPUT" />
+        <connection sourcemodule = "State" source = "OUTPUT" targetmodule = "InputSelectorInstance" target = "SELECT" />
+
+		<view name="View">
+			<object class="Plot " 
+				module="SquareGen" 
+				source="OUTPUT" 
+				x="0" y="0" w="1" h="1"
+				min="0"
+				max="2"
+			/>
+			<object class="Plot " 
+				module="InputSelectorInstance" 
+				source="OUTPUT" 
+				x="0" y="1" w="1" h="1"
+				min="0"
+				max="2"
+			/>
+			<object
+			   class="Slider"
+			   title="Name"
+			   module = "State"
+			   parameter = "data"
+			   xindex = "0"
+			   x="1" y="0" h="2"
+			  min="0.0" 
+			  max="1"
+			  steps="1"
+			/>
+		</view>
+
+</group>
+ 

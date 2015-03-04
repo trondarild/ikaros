@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group name="InputSelector" description="minimal example module">
+
+	<description type="text">
+		Module that selects an input given an index. Add multiple inputs by 
+		adding connections. Each input should be of same size.
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="InputSelector"
+			name="InputSelector"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="The input" />
+	<input name="SELECT" description="The index to use" />
+
+	<output name="OUTPUT" description="The output" />
+
+	<module class="InputSelector" />
+
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>InputSelector.h</file>
+   		<file>InputSelector.cc</file>
+   		<file>InputSelector.ikc</file>
+   </files>
+
+</group>
+
