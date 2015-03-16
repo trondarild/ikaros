@@ -253,6 +253,7 @@ namespace ikaros
     // linear algebra
     
 	float **    eye(float ** a, int size); // identity matrix
+    float **    diag(float ** m, float * a, int size);
     float **    transpose(float ** a_T, float ** a, int sizex, int sizey);
     float **    transpose(float ** a, int size); // transpose square matrix in place
     float       det(float ** m, int size); // determinant of m

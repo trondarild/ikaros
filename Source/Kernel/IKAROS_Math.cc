@@ -1553,6 +1553,15 @@ namespace ikaros
         return a;
     }
     
+    float **
+    diag(float ** m, float * a, int size)
+    {
+        for (int i=0; i<size; ++i) {
+            m[i][i] = a[i];
+        }
+        return m;
+    }
+    
     
     
     static void
