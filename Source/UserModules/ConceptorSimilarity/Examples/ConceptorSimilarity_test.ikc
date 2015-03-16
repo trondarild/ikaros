@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<group title="ConceptorSimilarity Example">
+	
+		<module
+			class = "Constant"
+			name = "ConstantA"
+			data  = "0.861638 -0.048423 -1.317875;
+            -0.314226 -0.643721 -1.560938;
+            -1.319618 -1.598758 0.907849"
+		/>
+        <module
+        class = "Constant"
+        name = "ConstantB"
+        data  = "-0.029029 -0.127097 0.055164;
+        -1.016003 0.843322 -0.643657;
+        -0.263315 -1.002016 -1.104020"
+		/>
+
+
+		<module
+			class = "ConceptorSimilarity"
+			name = "ConceptorSimilarityInstance"
+            debug = "true"
+        />
+		
+        <connection sourcemodule = "ConstantA" source = "OUTPUT" targetmodule = "ConceptorSimilarityInstance" target = "INPUT1" />
+        <connection sourcemodule = "ConstantB" source = "OUTPUT" targetmodule = "ConceptorSimilarityInstance" target = "INPUT2" />
+
+		<view name="View">
+            <object
+            class="Table"
+            module="ConceptorSimilarityInstance"
+            source="OUTPUT"
+            x="0"
+            y="0" 
+            />
+		</view>
+
+</group>
+ 
