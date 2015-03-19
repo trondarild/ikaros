@@ -135,6 +135,7 @@ def NOT(R):
 from numpy import diag
 from numpy.linalg import pinv
 def AND(C, B):
+	
 	dim, col = C.shape
 	tolerance = 1e-14
 
@@ -144,21 +145,23 @@ def AND(C, B):
 	diag_SC = diag(SC)
 	diag_SB = diag(SB)
 
-	# sum up how many elements are bigger than tolerance
-	numRankC =  sum(1.0 * (diag_SC > tolerance))
-	numRankB =  sum(1.0 * (diag_SB > tolerance))
+	# sum up how many elements on diagonal 
+	# are bigger than tolerance
+	numRankC =  (1.0 * (diag_SC > tolerance)).sum()
+	numRankB =  (1.0 * (diag_SB > tolerance)).sum()
 
-	UC0 = UC[:, numRankC:]
-	UB0 = UB[:, numRankB:]
+	UC0 = matrix(UC[:, numRankC:])
+	UB0 = matrix(UB[:, numRankB:])
 	W, Sigma, Wt = svd(UC0 * UC0.transpose() + UB0 * UB0.transpose())
-	numRankSigma =  sum(1.0 * (diag(Sigma) > tolerance))
-	Wgk = W[:, numRankSigma:]
-	
+	numRankSigma =  (1.0 * (diag(Sigma) > tolerance)).sum()
+	Wgk = matrix(W[:, numRankSigma:])
+	I = matrix(identity(dim))
 	CandB = \
 	  Wgk * inv(Wgk.transpose() *  \
 	  ( pinv(C, tolerance) + pinv(B, tolerance) - \
-	  	identity(dim)) * Wgk) *Wgk.transpose()
-
+	    I) * Wgk) *Wgk.transpose()
 	return CandB
 
-
+def OR(R,Q):
+	RorQ = NOT(AND(NOT(R), NOT(Q)))
+	return RorQ
