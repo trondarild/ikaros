@@ -94,11 +94,12 @@ def rmsd(x, y, normalize=False):
         rmsd = rmsd / x.ptp()
     return 
 
-from numpy import linalg, matrix, identity
+from numpy import matrix, identity
+from numpy.linalg import inv
 def ridgeregression(a, b, alpha):
     rows, cols = a.shape
     I = matrix(identity(rows))
-    retval = (linalg.inv(a*a.transpose() +\
+    retval = (inv(a*a.transpose() +\
                     alpha*I) * a *\
                     b.transpose()).transpose()
     return retval
@@ -113,3 +114,51 @@ def conceptor_similarity (a, b):
  	return pow(norm((sqrt(S_a) * U_a.transpose() * \
  	         U_b * sqrt(S_b))),2) / \
  	         (norm(a) * norm(b));
+
+
+def NOT(R):
+	# NOT defined by I - R
+
+	dim, col = R.shape
+
+	return  identity(dim) - R
+	# U, S, V = svd(notR)
+	# 
+	# nout = max(nargout,1)-1
+	# varargout = []
+	# for k in range(nout):
+	#     if k == 1:
+	#         varargout[k] = U
+	#     elif k == 2:
+	#         varargout[k] = S
+
+from numpy import diag
+from numpy.linalg import pinv
+def AND(C, B):
+	dim, col = C.shape
+	tolerance = 1e-14
+
+	UC, SC, UtC = svd(C)
+	UB, SB, UtB = svd(B)
+
+	diag_SC = diag(SC)
+	diag_SB = diag(SB)
+
+	# sum up how many elements are bigger than tolerance
+	numRankC =  sum(1.0 * (diag_SC > tolerance))
+	numRankB =  sum(1.0 * (diag_SB > tolerance))
+
+	UC0 = UC[:, numRankC:]
+	UB0 = UB[:, numRankB:]
+	W, Sigma, Wt = svd(UC0 * UC0.transpose() + UB0 * UB0.transpose())
+	numRankSigma =  sum(1.0 * (diag(Sigma) > tolerance))
+	Wgk = W[:, numRankSigma:]
+	
+	CandB = \
+	  Wgk * inv(Wgk.transpose() *  \
+	  ( pinv(C, tolerance) + pinv(B, tolerance) - \
+	  	identity(dim)) * Wgk) *Wgk.transpose()
+
+	return CandB
+
+
