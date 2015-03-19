@@ -165,3 +165,25 @@ def AND(C, B):
 def OR(R,Q):
 	RorQ = NOT(AND(NOT(R), NOT(Q)))
 	return RorQ
+
+from numpy import Inf
+def PHI(C, gamma):
+	dim, cols = C.shape
+	# Cnew = matrix()
+	if gamma == 0:
+	    U, S, V = svd(C);
+	    Sdiag = diag(S); # diagonal of S is the singular values
+	    # Sdiag[Sdiag < 1] = zeros((Sdiag < 1).sum(), 1);
+	    Sdiag = (Sdiag<1).choose(Sdiag, 0)
+	    Cnew = U * Sdiag * U.transpose()    
+	    
+	elif gamma == Inf:
+	    U, S, V = svd(C)
+	    Sdiag = diag(S)
+	    # Sdiag[Sdiag > 0] = ones((Sdiag > 0).sum(), 1)
+	    Sdiag = (Sdiag>0).choose(Sdiag, 1.)
+	    Cnew = U * Sdiag * U.transpose() 
+	    
+	else:
+	    Cnew = C * inv(C + pow(gamma,-2) * (identity(dim) - C))
+	return Cnew
