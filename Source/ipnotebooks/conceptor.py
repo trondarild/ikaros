@@ -92,7 +92,7 @@ def rmsd(x, y, normalize=False):
     rmsd = np.sqrt(np.sum(np.power((x - y), 2)) / x.size)
     if normalize:
         rmsd = rmsd / x.ptp()
-    return 
+    return rmsd
 
 from numpy import matrix, identity
 from numpy.linalg import inv
@@ -187,3 +187,18 @@ def PHI(C, gamma):
 	else:
 	    Cnew = C * inv(C + pow(gamma,-2) * (identity(dim) - C))
 	return Cnew
+
+from scipy.sparse.linalg import eigs 
+def generate_internal_weights(num_units, connectivity):
+    success = False    
+    while not success:
+        try: # eigs can generate exception
+            weights = sprandn(num_units, num_units, connectivity)
+            spectral_radius = abs(eigs(weights, k=1, 
+                                       which = 'LM',
+                                       return_eigenvectors = False))
+            weights = weights/spectral_radius
+            success = True
+            return weights
+        except:
+            pass
