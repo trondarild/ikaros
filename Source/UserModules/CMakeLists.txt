@@ -1,7 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(ConceptorSimilarity)
-add_subdirectory(Groups)
 add_subdirectory(MatrixList)
 add_subdirectory(InputSelector)
 add_subdirectory(ListIterator)
