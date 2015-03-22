@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<group description="Inverts reservoir update function to access reservoir state">
+    <!--Parameters-->
+    <parameter name="replicate_x" module="RepMat" target="replicate_x" default="1" />
+	<parameter name="replicate_y" module="RepMat" target="replicate_y" default="1" />
+
+
+    <!--input and output-->
+	<input name="INPUT" targetmodule = "Atanh" target = "INPUT"/>
+   	<input name="BIAS" targetmodule = "RepMat" target = "INPUT"/>
+	<output name="OUTPUT" sourcemodule = "Subtract" source = "OUTPUT" set_size="INPUT"/>
+    
+    <!--Connections-->
+	<connection sourcemodule = "Atanh" source = "OUTPUT" targetmodule = "Subtract" target = "INPUT1" />
+   	<connection sourcemodule = "RepMat" source = "OUTPUT" targetmodule = "Subtract" target = "INPUT2" />
+
+    <!--Modules-->
+	<module 
+		class="Atanh"
+		name="Atanh"
+        debug = "false"
+	/>
+	<module
+		class="RepMat"
+		name="RepMat"
+        debug="false"
+	/>
+	<module
+        class="Subtract"
+        name="Subtract"
+	/>
+
+    <files>
+   		<file>InvertReservoirFunction.ikc</file>
+   </files>
+
+</group>

@@ -1,0 +1,442 @@
+<?xml version="1.0"?>
+
+<group title="Conceptor system basic">
+	<!-- Modules -->
+    <module
+        class = "Constant"
+        name = "TychonovAlpha"
+        outputsize  = "1"
+        data  = "0.0001"
+    />
+    <module
+        class = "Constant"
+        name = "ConceptorAperture"
+        outputsize  = "1"
+        data  = "10"
+    />
+    <module
+        class = "Constant"
+        name = "LearnLength"
+        outputsize  = "1"
+        data  = "1000"
+    />
+    
+    <!--Signal generators for input-->
+    <module
+        class  =   "FunctionGenerator"
+        name=   "SinGen"
+        type        =   "sin"
+        frequency  =  "0.1"
+        offset =   "0.0"
+        amplitude   =   "1"
+        shift       =   "0.0"
+    />
+    <module
+        class  =   "FunctionGenerator"
+        name=   "TriGen"
+        type        =   "triangle"
+        frequency  =  "0.1"
+        offset =   "-0.50"
+        amplitude   =   "1"
+        shift       =   "0.0"
+    />
+    <module
+        class  =   "FunctionGenerator"
+        name=   "SquareGen"
+        type        =   "square"
+        frequency  =  "0.5"
+        offset =   "-0.5"
+        amplitude   =   "1"
+        shift       =   "0.0"
+    />
+    
+    <!--Tickduty of this oscillator determines length of each signal-->
+    <module
+        class  =   "FunctionGenerator"
+        name=   "SignalLength"
+        type        =   "ticksquare"
+        basetime = "1500"
+        tickduty = "1"
+    />
+    <module
+        class =     "InputSelector"
+        name =      "InputSelector"
+        debug = "false"
+    />
+    <module
+        class =     "ListIterator"
+        name =      "InputIx"
+        repeat =    "false"
+        list =      "0 1 2"
+        list_length = "3"
+        debug = "false"
+    />
+    
+    <!--Input to learning reservoir-->
+    <module
+        class = "SparseMatrix"
+        name = "W_star"
+        dimension  = "100"
+        fillfactor = "0.1"
+    />
+    <module
+        class = "Randomizer"
+        name= "W_in"
+        outputsize_x = "1"
+        outputsize_y = "100"
+        interval = "-1"
+        distribution = "gaussian"
+          min = "-1"
+          max = "1"
+          meanval = "0"
+          variance = "0.5"
+    />
+    <module
+        class = "Randomizer"
+        name= "bias"
+        outputsize_x = "1"
+        outputsize_y = "100"
+        interval = "-1"
+        distribution = "gaussian"
+        min = "-1"
+        max = "1"
+        meanval = "0"
+        variance = "0.5"
+    />
+    <module
+        class = "Scale"
+        name = "W_inScale"
+        factor = "1.5"
+    />
+    <module
+        class = "Scale"
+        name = "BiasScale"
+        factor = "0.2"
+    />
+    <module
+        class = "Scale"
+        name = "W_starScale"
+        factor = "1.5"
+    />
+    <module
+        class = "Constant"
+        name = "Zero"
+        outputsize  = "1"
+        data  = "0"
+    />
+    <module
+        class = "RepMat"
+        name = "NullVec"
+        replicate_x = "1"
+        replicate_y = "100"
+        debug = "false"
+    />
+    
+    <!--Data collection-->
+    <module
+        class="ReservoirNetwork"
+        name="LearningReservoir"
+        dimension = "100"
+        debug = "false"
+    />
+    <module
+        class="ReservoirNetwork"
+        name="RecallingReservoir"
+        dimension = "100"
+        debug = "false"
+    />
+    <module
+        class="Collector"
+        name="XCollector"
+        collection_direction = "x"
+        size = "1500"
+        debug = "false"
+    />
+    <module
+        class = "Submatrix"
+        name = "SubmatrixPrev"
+        x0 = "500"
+        x1 = "1499"
+        y0 = "0"
+        y1 = "100"
+    />
+    <module
+        class = "Submatrix"
+        name = "SubmatrixCurrent"
+        x0 = "501"
+        x1 = "1500"
+        y0 = "0"
+        y1 = "100"
+    />
+    <module
+        class = "Submatrix"
+        name = "SubmatrixLearnLength"
+        x0 = "500"
+        x1 = "1500"
+        y0 = "0"
+        y1 = "100"
+    />
+    <module
+        class = "Submatrix"
+        name = "SubmatrixLearnLengthInput"
+        x0 = "501"
+        x1 = "1500"
+        y0 = "0"
+        y1 = "1"
+    />
+    <module
+        class="Collector"
+        name="XPrevCollector"
+        collection_direction = "x"
+        size = "3"
+        debug = "false"
+    />
+    <module
+        class="Collector"
+        name="XCurrentCollector"
+        collection_direction = "x"
+        size = "3"
+        debug = "false"
+    />
+    <module
+        class="Collector"
+        name="InputCollector"
+        collection_direction = "x"
+        size = "2997"
+        debug = "false"
+    />
+    <module
+        class="InvertReservoirFunction"
+        name="InvResFunc"
+        replicate_x = "2997"
+        replicate_y = "1"
+	/>
+
+    
+    <!--Conceptor calculation-->
+    <module
+        class="CorrelationCalc"
+        name="CorrelationCalc"
+        debug = "false"
+    />
+    <module
+        class="ConceptorCalc"
+        name="ConceptorCalc"
+        debug = "false"
+    />
+    <module
+        class = "Constant"
+        name = "ConceptorSelect"
+        outputsize  = "1"
+        data  = "0"
+    />
+    <module
+        class = "MatrixList"
+        name = "ConceptorList"
+        size = "3"
+        store_on_change = "true"
+        default_identity = "true"
+        debug = "false"
+    />
+    <module
+        class = "MatrixMultiply"
+        name = "Mult_Conceptor_X"
+    />
+    <module
+        class = "MatrixMultiply"
+        name = "Mult_Wout_Conceptor_X"
+    />
+    
+    <!--Ridge regression-->
+    <module
+        class="RidgeRegression"
+        name="W_Regression"
+        output_x="100"
+        output_y="100"
+        debug = "false"
+    />
+    <module
+        class="RidgeRegression"
+        name="Wout_Regression"
+        output_x="100"
+        output_y="1"
+        debug = "false"
+    />
+    
+    <!--Mappings to view network state-->
+    <module
+        class="Map"
+        name="LearnXMap"
+        low_source = "-1"
+        high_source = "1"
+        low_target = "0"
+        high_target = "1"
+    />
+    <module
+        class="Map"
+        name="RecallXMap"
+        low_source = "-1"
+        high_source = "1"
+        low_target = "0"
+        high_target = "1"
+    />
+    <module
+        class="Map"
+        name="ConceptorMap"
+        low_source = "-1"
+        high_source = "1"
+        low_target = "0"
+        high_target = "1"
+    />
+    
+    
+	<!--Connections-->
+        <!--TO: ListIterator-->
+            <connection sourcemodule = "SignalLength" source = "OUTPUT" targetmodule = "InputIx" target = "SYNC IN" />
+            <connection sourcemodule = "Zero" source = "OUTPUT" targetmodule = "InputIx" target = "SELECT" />
+        <!--TO: InputSelector-->
+            <connection sourcemodule = "InputIx" source = "OUTPUT" targetmodule = "InputSelector" target = "SELECT" />
+            <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "InputSelector" target = "INPUT" />
+            <connection sourcemodule = "TriGen" source = "OUTPUT" targetmodule = "InputSelector" target = "INPUT" />
+            <connection sourcemodule = "SquareGen" source = "OUTPUT" targetmodule = "InputSelector" target = "INPUT" />
+            
+    
+        <!--TO: W_inScale-->
+            <connection sourcemodule = "W_in" source = "OUTPUT" targetmodule = "W_inScale" target = "INPUT" />
+        <!--TO: BiasScale-->
+            <connection sourcemodule = "bias" source = "OUTPUT" targetmodule = "BiasScale" target = "INPUT" />
+        <!--TO: W_starScale-->
+            <connection sourcemodule = "W_star" source = "OUTPUT" targetmodule = "W_starScale" target = "INPUT" />
+        <!--TO: NullVec-->
+            <connection sourcemodule = "Zero" source = "OUTPUT" targetmodule = "NullVec" target = "INPUT" />
+        <!--TO: LearningReservoir-->
+            <connection sourcemodule = "W_inScale" source = "OUTPUT" targetmodule = "LearningReservoir" target = "W_IN" />
+            <connection sourcemodule = "W_starScale" source = "OUTPUT" targetmodule = "LearningReservoir" target = "W" />
+            <connection sourcemodule = "BiasScale" source = "OUTPUT" targetmodule = "LearningReservoir" target = "BIAS" />
+            <connection sourcemodule = "InputSelector" source = "OUTPUT" targetmodule = "LearningReservoir" target = "INPUT" />
+            
+        <!--TO: XCollector-->
+            <connection sourcemodule = "LearningReservoir" source = "OUTPUT" targetmodule = "XCollector" target = "INPUT" />
+        <!--TO: SubmatrixPrev-->
+            <connection sourcemodule = "XCollector" source = "OUTPUT" targetmodule = "SubmatrixPrev" target = "INPUT" />
+        <!--TO: SumbatrixCurrent-->
+            <connection sourcemodule = "XCollector" source = "OUTPUT" targetmodule = "SubmatrixCurrent" target = "INPUT" />
+        <!--TO: XPrevCollector-->
+            <connection sourcemodule = "SubmatrixPrev" source = "OUTPUT" targetmodule = "XPrevCollector" target = "INPUT" />
+        <!--TO: XCurrentCollector-->
+            <connection sourcemodule = "SubmatrixCurrent" source = "OUTPUT" targetmodule = "XCurrentCollector" target = "INPUT" />
+        <!--TO: SubmatrixLearnLengthInput-->
+            <connection sourcemodule = "InputSelector" source = "OUTPUT" targetmodule = "SubmatrixLearnLengthInput" target = "INPUT" />
+        <!--TO: InputCollector-->
+            <connection sourcemodule = "SubmatrixLearnLengthInput" source = "OUTPUT" targetmodule = "InputCollector" target = "INPUT" />
+        
+        <!--TO: InvResFunc-->
+            <connection sourcemodule = "XCurrentCollector" source = "OUTPUT" targetmodule = "InvResFunc" target = "INPUT" />
+            <connection sourcemodule = "BiasScale" source = "OUTPUT" targetmodule = "InvResFunc" target = "BIAS" />
+        <!--TO: W_Regression-->
+            <connection sourcemodule = "XPrevCollector" source = "OUTPUT" targetmodule = "W_Regression" target = "INPUT" />
+            <connection sourcemodule = "InvResFunc" source = "OUTPUT" targetmodule = "W_Regression" target = "TARGET" />
+            <connection sourcemodule = "TychonovAlpha" source = "OUTPUT" targetmodule = "W_Regression" target = "ALPHA" />
+        <!--TO: Wout_Regression-->
+            <connection sourcemodule = "XCurrentCollector" source = "OUTPUT" targetmodule = "Wout_Regression" target = "INPUT" />
+            <connection sourcemodule = "InputCollector" source = "OUTPUT" targetmodule = "Wout_Regression" target = "TARGET" />
+            <connection sourcemodule = "TychonovAlpha" source = "OUTPUT" targetmodule = "Wout_Regression" target = "ALPHA" />
+        <!--TO: RecallingReservoir-->
+            <connection sourcemodule = "NullVec" source = "OUTPUT" targetmodule = "RecallingReservoir" target = "W_IN" />
+            <connection sourcemodule = "BiasScale" source = "OUTPUT" targetmodule = "RecallingReservoir" target = "BIAS" />
+            <connection sourcemodule = "Zero" source = "OUTPUT" targetmodule = "RecallingReservoir" target = "INPUT" />
+            <connection sourcemodule = "W_Regression" source = "OUTPUT" targetmodule = "RecallingReservoir" target = "W" />
+        
+        <!--TO: SubmatrixLearnLength-->
+            <connection sourcemodule = "XCollector" source = "OUTPUT" targetmodule = "SubmatrixLearnLength" target = "INPUT" />
+        <!--TO: CorrelationCalc-->
+            <connection sourcemodule = "SubmatrixLearnLength" source = "OUTPUT" targetmodule = "CorrelationCalc" target = "INPUT" />
+            <connection sourcemodule = "LearnLength" source = "OUTPUT" targetmodule = "CorrelationCalc" target = "SCALE" />
+        <!--TO: ConceptorCalc-->
+            <connection sourcemodule = "CorrelationCalc" source = "OUTPUT" targetmodule = "ConceptorCalc" target = "INPUT" />
+            <connection sourcemodule = "ConceptorAperture" source = "OUTPUT" targetmodule = "ConceptorCalc" target = "APERTURE" />
+        <!--TO ConceptorList-->
+            <connection sourcemodule = "CorrelationCalc" source = "OUTPUT" targetmodule = "ConceptorList" target = "INPUT" />
+            <connection sourcemodule = "ConceptorSelect" source = "OUTPUT" targetmodule = "ConceptorList" target = "SELECT" />
+        <!--TO: Mult_Conceptor_X-->
+            <connection sourcemodule = "ConceptorList" source = "OUTPUT" targetmodule = "Mult_Conceptor_X" target = "INPUT1" />
+            <connection sourcemodule = "RecallingReservoir" source = "OUTPUT" targetmodule = "Mult_Conceptor_X" target = "INPUT2" />
+        <!--TO: Mult_Wout_Conceptor_X-->
+            <connection sourcemodule = "Wout_Regression" source = "OUTPUT" targetmodule = "Mult_Wout_Conceptor_X" target = "INPUT1" />
+            <connection sourcemodule = "Mult_Conceptor_X" source = "OUTPUT" targetmodule = "Mult_Wout_Conceptor_X" target = "INPUT2" />
+            
+        <!--TO: LearnXMap-->
+            <connection sourcemodule = "LearningReservoir" source = "OUTPUT" targetmodule = "LearnXMap" target = "INPUT" />
+        <!--TO: RecallXMap-->
+            <connection sourcemodule = "RecallingReservoir" source = "OUTPUT" targetmodule = "RecallXMap" target = "INPUT" />
+        <!--TO: ConceptorXMap-->
+            <connection sourcemodule = "ConceptorList" source = "OUTPUT" targetmodule = "ConceptorMap" target = "INPUT" />
+            
+            
+	<!-- View -->
+		<view>
+            <!--Check input-->
+            <object class="Plot" 
+                module="InputSelector"
+                source="OUTPUT" 
+                x="0" y="0" w="2" h="2"
+                min="-1"
+                max="1"
+            />
+            <object
+                class="Grid"
+                module="LearnXMap"
+                source="OUTPUT"
+               max="1"
+               x="2"
+               y="0"
+                w="1" h="2"
+               color="LUT_fire"
+            />
+            <object
+                class="Grid"
+                module="RecallXMap"
+                source="OUTPUT"
+                max="1"
+                x="3"
+                y="0"
+                w="1" h="2"
+                color="LUT_fire"
+            />
+            <object class="Plot"
+                module="InputIx"
+                source="OUTPUT" 
+                x="4" y="0" w="1" h="1"
+                min="0"
+                max="3"
+            />
+            <!--object
+                class="Grid"
+                module="ConceptorList"
+                source="OUTPUT"
+                x="0"
+                y="2"
+                w="2" h="2"
+                color="LUT_fire"
+            /-->
+            <object class="Plot"
+                module="Mult_Wout_Conceptor_X"
+                source="OUTPUT"
+                x="2" y="2"  w="2" h="2"
+                min="-1"
+                max="1"
+            />
+            <object
+                class="StepSlider"
+                title="ConceptorSelect"
+                module = "ConceptorSelect"
+                parameter = "data"
+                xindex = "0"
+                x="4" y="2" h="2"
+                 min="0"
+                 max="3"
+                 steps="3"
+            />
+		</view>
+
+</group>
