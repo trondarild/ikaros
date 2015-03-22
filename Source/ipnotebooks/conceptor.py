@@ -106,14 +106,15 @@ def ridgeregression(a, b, alpha):
 
 from numpy.linalg import svd, norm
 from numpy import sqrt
-def conceptor_similarity (a, b):
-       
- 	U_a, S_a, V_a = svd(a);
- 	U_b, S_b, V_b = svd(b);
- 	# similarity with previous conceptor
- 	return pow(norm((sqrt(S_a) * U_a.transpose() * \
- 	         U_b * sqrt(S_b))),2) / \
- 	         (norm(a) * norm(b));
+def conceptor_similarity (a, b): 
+      U_a, S_a, V_a = svd(a);
+      U_b, S_b, V_b = svd(b);
+      S_a = diag(S_a)
+      S_b = diag(S_b)
+      # similarity with previous conceptor
+      return pow(norm((sqrt(S_a) * U_a.transpose() * \
+              U_b * sqrt(S_b))),2) / \
+              (norm(a) * norm(b));
 
 
 def NOT(R):
