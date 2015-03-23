@@ -52,6 +52,8 @@ public:
     int         y0;
     int         y1;
     int         kernel_size;
+    int         input_matrix_size_x;
+    int         input_matrix_size_y;
 
     float **	input;
     float *     shift;

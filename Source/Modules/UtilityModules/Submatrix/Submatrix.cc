@@ -70,6 +70,8 @@ Submatrix::Init()
     Bind(direction, "direction");
 
     input		= GetInputMatrix("INPUT");
+    input_matrix_size_x = GetInputSizeX("INPUT");
+    input_matrix_size_y = GetInputSizeY("INPUT");
     shift		= GetInputArray("SHIFT");
 
     output      = GetOutputMatrix("OUTPUT");
@@ -98,9 +100,23 @@ Submatrix::Tick()
     }
     else
     {
-        for(int i=0; i<size_x; i++)
-            for(int j=0; j<size_y; j++) // TODO: This loop can be optimized  using copy array for larger matrices
-                output[j][i] = input[j+y0][i+x0];
+        // for(int i=0; i<size_x; i++)
+        //    for(int j=0; j<size_y; j++) // TODO: This loop can be optimized  using copy array for larger matrices
+        //        output[j][i] = input[j+y0][i+x0];
+        get_submatrix(
+                      output[0],
+                      size_y,
+                      size_x,
+                      input[0],
+                      input_matrix_size_x,
+                      y0,
+                      x0);
+        
+    }
+    if(false)
+    {
+        print_matrix("Submatrix::input", input, input_matrix_size_x, input_matrix_size_y, 2);
+        print_matrix("Submatrix::output", output, size_x, size_y, 2);
     }
 }
 

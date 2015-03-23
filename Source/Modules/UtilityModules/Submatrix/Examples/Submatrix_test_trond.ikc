@@ -2,21 +2,28 @@
 
 <group>
 	
-		<module class = "Constant" name = "Constant" outputsize_x = "3" outputsize_y = "3" data = "1 2 3 2 3 4 3 4 5" />
+		<module class = "Constant" name = "Constant" data = "1 2 3; 2 3 4; 3 4 5" />
 	
 		<module
 			class = "Submatrix"
 			name = "Submatrix"
             x0 = "0"
-            x1 = "1"
-            y0 = "0"
-            y1 = "1"
+            x1 = "3"
+            y0 = "1"
+            y1 = "3"
 		/>
 
 		<connection sourcemodule="Constant" source="OUTPUT" targetmodule="Submatrix" target="INPUT" />
 
 		<view name="View">
-			<object class="Image" type="gray" module="Submatrix" source="OUTPUT" x="0" y="0" />
+            <object
+            class="Table"
+            module="Submatrix"
+            source="OUTPUT"
+            x="0"
+            y="0" w="2" h="2"
+            />
+
 		</view>
 
 </group>
