@@ -86,7 +86,7 @@ ReservoirNetwork::~ReservoirNetwork()
 void
 ReservoirNetwork::Tick()
 {
-    printf("input value: %f\n", input_array[0]);
+    // printf("input value: %f\n", input_array[0]);
 	// update the network
     // x = tanh(W*x + W_in*input + bias)
     multiply(

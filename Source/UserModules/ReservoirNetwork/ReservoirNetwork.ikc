@@ -19,7 +19,7 @@
 
 	<parameter name="dimension" type="int" default="100" description="The number of neurons" />
 	<parameter name="bias_scaling" type="float" default="0.2" description="Scaling of bias" />
-	<parameter name="debug" type="bool" default="true" description="Turns on or off debugmode" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
 
 	<input name="INPUT" description="The first input" />
 	<input name="W" description="Weight matrix which connects neurons" />
@@ -27,7 +27,7 @@
 	<input name="BIAS" description="Bias vector" />
 
 
-	<output name="OUTPUT" description="Network state" description="Copy of network state" />
+	<output name="OUTPUT" description="Network state" />
 
 	<module class="ReservoirNetwork" />
 
