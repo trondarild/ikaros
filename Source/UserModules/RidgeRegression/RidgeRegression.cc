@@ -114,20 +114,29 @@ void
 RidgeRegression::Tick()
 {
    // output the input matrices so can compare with matlab
-   print_matrix("input_matrix", input_matrix, input_matrix_size_x, input_matrix_size_y, 4 | MATLAB);
-   print_matrix("target_matrix", target_matrix, target_matrix_size_x, target_matrix_size_y, 4 | MATLAB);
-   
+   //print_matrix("input_matrix", input_matrix, input_matrix_size_x, input_matrix_size_y, 4 | MATLAB);
+   //print_matrix("target_matrix", target_matrix, target_matrix_size_x, target_matrix_size_y, 4 | MATLAB);
+    // do ridge regression procedure
+    /*
+
+    (inv(
+        input * input' +
+        alpha * eye(input_size_y)
+        )
+    * input * target')'
+
+    */
    transpose(
         input_transpose,
         input_matrix,
         input_matrix_size_y,
         input_matrix_size_x);
-    printf("RidgeRegression::input transpose ok\n");
-    print_matrix(
-                "RidgeRegression::input_transpose",
-                input_transpose,
-                input_matrix_size_y,
-                input_matrix_size_x);
+//    printf("RidgeRegression::input transpose ok\n");
+//    print_matrix(
+//                "RidgeRegression::input_transpose",
+//                input_transpose,
+//                input_matrix_size_y,
+//                input_matrix_size_x);
     multiply(
                 internal_matrix_a,
                 input_matrix,
@@ -135,24 +144,24 @@ RidgeRegression::Tick()
                 input_matrix_size_y,
                 input_matrix_size_y,
                 input_matrix_size_x);
-    printf("RidgeRegression::correlation multiplication ok\n");
-    print_matrix(
-                "RidgeRegression::internal_matrix_a",
-                internal_matrix_a,
-                input_matrix_size_y,
-                input_matrix_size_y);
+//    printf("RidgeRegression::correlation multiplication ok\n");
+//    print_matrix(
+//                "RidgeRegression::internal_matrix_a",
+//                internal_matrix_a,
+//                input_matrix_size_y,
+//                input_matrix_size_y);
     multiply(
                 internal_matrix_b,
                 identity,
                 alpha[0],
                 input_matrix_size_y,
                 input_matrix_size_y);
-    printf("RidgeRegression::alpha multiplication ok\n");
-    print_matrix(
-                "RidgeRegression::internal_matrix_b",
-                internal_matrix_b,
-                input_matrix_size_y,
-                input_matrix_size_y, 4);
+//    printf("RidgeRegression::alpha multiplication ok\n");
+//    print_matrix(
+//                "RidgeRegression::internal_matrix_b",
+//                internal_matrix_b,
+//                input_matrix_size_y,
+//                input_matrix_size_y, 4);
 
    add(
         internal_matrix_a, 
@@ -160,23 +169,23 @@ RidgeRegression::Tick()
         internal_matrix_b, 
         input_matrix_size_y,
         input_matrix_size_y);
-    printf("RidgeRegression::addition ok\n");
-    print_matrix(
-                "RidgeRegression::internal_matrix_a",
-                internal_matrix_a,
-                input_matrix_size_y,
-                input_matrix_size_y);
+//    printf("RidgeRegression::addition ok\n");
+//    print_matrix(
+//                "RidgeRegression::internal_matrix_a",
+//                internal_matrix_a,
+//                input_matrix_size_y,
+//                input_matrix_size_y);
 
     bool okk = inv(
         internal_matrix_b, 
         internal_matrix_a,
         input_matrix_size_y);
-    printf("RidgeRegression::inversion ok: %i\n", (int)okk);
-    print_matrix(
-                "RidgeRegression::internal_matrix_b",
-                internal_matrix_b,
-                input_matrix_size_y,
-                input_matrix_size_y);
+//    printf("RidgeRegression::inversion ok: %i\n", (int)okk);
+//    print_matrix(
+//                "RidgeRegression::internal_matrix_b",
+//                internal_matrix_b,
+//                input_matrix_size_y,
+//                input_matrix_size_y);
     
     transpose(
         target_transpose,
@@ -190,12 +199,12 @@ RidgeRegression::Tick()
         output_matrix_size_y,
         output_matrix_size_x,
         input_matrix_size_x);
-    printf("RidgeRegression::multiplication target ok\n");
-    print_matrix(
-                "RidgeRegression::output_matrix",
-                pre_output_transposed,
-                output_matrix_size_y,
-                output_matrix_size_x);
+//    printf("RidgeRegression::multiplication target ok\n");
+//    print_matrix(
+//                "RidgeRegression::output_matrix",
+//                pre_output_transposed,
+//                output_matrix_size_y,
+//                output_matrix_size_x);
 
     multiply(
         pre_output_transposed,
@@ -204,76 +213,20 @@ RidgeRegression::Tick()
         output_matrix_size_y,
         output_matrix_size_x,
         input_matrix_size_y);
-    printf("RidgeRegression::multiplication output ok\n");
+//    printf("RidgeRegression::multiplication output ok\n");
     transpose(
              output_matrix,
              pre_output_transposed,
              output_matrix_size_x,
              output_matrix_size_y);
 
-    print_matrix(
-                "RidgeRegression::output_matrix",
-                output_matrix,
-                output_matrix_size_x,
-                output_matrix_size_y, 4);
+//    print_matrix(
+//                "RidgeRegression::output_matrix",
+//                output_matrix,
+//                output_matrix_size_x,
+//                output_matrix_size_y, 4);
 
-    // do ridge regression procedure
-   /*  
-   
-        (inv(
-            input * input' +
-            alpha * eye(input_size_y)
-        ) 
-          * input * target')'
     
-    */
-    /*
-    bool ok = inv(
-        internal_matrix_a,
-        add(    
-            internal_matrix_a,
-            multiply(
-                internal_matrix_a,
-                input_transpose,
-                input_matrix,
-                input_matrix_size_x,
-                input_matrix_size_x,
-                input_matrix_size_y),
-            multiply(
-                internal_matrix_b,
-                identity,
-                alpha[0],
-                input_matrix_size_x,
-                input_matrix_size_x),
-            input_matrix_size_x,
-            input_matrix_size_x
-        ),
-        input_matrix_size_x
-    );
-    //if(!ok)
-    //    Notify(msg_fatal_error, "RidgeRegression::Tick: matrix inversion failed");
-
-    multiply(
-        pre_output_transposed,
-        internal_matrix_a,
-        multiply(
-            internal_matrix_b,
-            input_transpose,
-            target_matrix,
-            input_matrix_size_x,
-            input_matrix_size_x,
-            input_matrix_size_y),
-        output_matrix_size_y,
-        output_matrix_size_x,
-        input_matrix_size_x
-    );
-
-    transpose(
-        output_matrix,
-        pre_output_transposed,
-        output_matrix_size_x, 
-        output_matrix_size_y);
-    */
 	if(debugmode)
 	{
 		// print out debug info
