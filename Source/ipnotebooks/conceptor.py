@@ -203,3 +203,31 @@ def generate_internal_weights(num_units, connectivity):
             return weights
         except:
             pass
+        
+from numpy import float64, zeros, tanh        
+def evolve_conceptor(
+        W,
+        W_in,
+        bias,
+        netsize,
+        learnlength,
+        washout,
+        aperture,
+        inp, 
+        noisefactor):
+    # evolve conceptor for static input
+    
+    I = matrix (identity(netsize))
+    x_collector = matrix(zeros((netsize, learnlength), float64))
+    x = matrix(zeros((netsize, 1), float64))
+    inp_dim, cols = inp.shape
+    for n in range(washout + learnlength):
+        noise_vec = noisefactor * rand(inp_dim,1)
+        x = tanh(W*x + W_in*(inp + noise_vec) + bias) #+ noisefactor * randn()  
+        
+        if n > washout:
+            x_collector[:, n-washout] = x
+    # calc conceptor
+    R = x_collector*x_collector.transpose()/learnlength
+    conceptor = R * inv(R + pow(aperture, -2)*I)
+    return conceptor  
