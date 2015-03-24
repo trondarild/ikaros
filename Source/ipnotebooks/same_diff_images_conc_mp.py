@@ -52,12 +52,13 @@ def conceptor_compare(inp1, inp2, noisefactor):
                         noisefactor)
     return conceptor_similarity(conc1, conc2)
 
-def conc_comp_mp(output, inp1, inp2, noisefactor):
+def conc_comp_mp(output, inp1, inp2, corr, noisefactor):
     sim = conceptor_compare(inp1, inp2, noisefactor)
-    output.put(sim)
+    output.put(str(sim) + ', ' + corr)
     
 
-mypath = '/Users/trondarildtjstheim/Desktop/images for same different/gray20x20'
+# mypath = '/Users/trondarildtjstheim/Desktop/images for same different/gray20x20'
+mypath = './gray20x20'
 lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 numfiles = len(onlyfiles)
@@ -73,29 +74,9 @@ max_gray_val = 255.0
 noisefactor = 0.0
 
 rdim = lambda x: misc.imread(join(mypath, x)) 
-img_mats = [(rdim(x[0]), rdim(x[1])) for x in all_img]
-for ix in img_indeces:
-    # read the images
-    pair = all_img[ix]
-    im1 = misc.imread(join(mypath, pair[0]))
-    im2 = im1
-    correct = 'same'
-    if not (pair[0] == pair[1]):
-        im2 = misc.imread(join(mypath, pair[1]))
-        correct = 'different'
-    im1 = im1/max_gray_val
-    im2 = im2/max_gray_val
+same = lambda x, y:  'different' if not (x==y) else 'same'
 
-#
-# serial
-#
-
-#start_time = timer.time()
-#for x in img_mats:
-#    simil_val = conceptor_compare(x[0], x[1], noisefactor)
-#    # print simil_val
-#print 'serial:'
-#print (timer.time() - start_time)
+img_mats = [(rdim(x[0]), rdim(x[1]), same(x[0], x[1])) for x in all_img]
 
 #
 # parallel
@@ -104,7 +85,8 @@ print 'starting parallel job'
 start_time = timer.time()
 # Define an output queue
 output = mp.Queue()
-processes = [mp.Process(target=conc_comp_mp, args=(output, x[0], x[1], noisefactor)) for x in img_mats]
+processes = [mp.Process(target=conc_comp_mp, args=(output, x[0], x[1], x[2], noisefactor))\
+        for x in img_mats]
 
 # Run processes
 for p in processes:
@@ -117,8 +99,10 @@ for p in processes:
 # Get process results from the output queue
 results = [output.get() for p in processes]
 
-print(results)
+for r in results:
+    print(r)
 
+print
 print 'multiprocess:'
 print (timer.time() - start_time)
 
