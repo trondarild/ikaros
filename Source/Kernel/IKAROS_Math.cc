@@ -2749,7 +2749,7 @@ namespace ikaros
     }
     
     float *
-    h_translatation_matrix(h_matrix r, float tx, float ty, float tz)
+    h_translation_matrix(h_matrix r, float tx, float ty, float tz)
     {
         r[ 0] = 1; r[ 1] = 0; r[ 2] = 0; r[ 3] = tx;
         r[ 4] = 0; r[ 5] = 1; r[ 6] = 0; r[ 7] = ty;
@@ -2936,9 +2936,10 @@ namespace ikaros
     h_multiply_v(h_vector r, h_matrix m, h_vector v)
     {
         float t[4];
-        t[0] = m[ 0]*v[0] + m[ 1]*v[1] + m[ 2]*v[2] + m[ 4]*v[3];
-        t[1] = m[ 5]*v[0] + m[ 6]*v[1] + m[ 7]*v[2] + m[ 8]*v[3];
-        t[2] = m[ 9]*v[0] + m[10]*v[1] + m[11]*v[2] + m[12]*v[3];
+        
+        t[0] = m[ 0]*v[0] + m[ 1]*v[1] + m[ 2]*v[2] + m[ 3]*v[3];
+        t[1] = m[ 4]*v[0] + m[ 5]*v[1] + m[ 6]*v[2] + m[ 7]*v[3];
+        t[2] = m[ 8]*v[0] + m[9]*v[1] + m[10]*v[2] + m[11]*v[3];
         t[3] = m[12]*v[0] + m[13]*v[1] + m[14]*v[2] + m[15]*v[3];
     
         if(t[3] != 0 && false) // normalize vector
