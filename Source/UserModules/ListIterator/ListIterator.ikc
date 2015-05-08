@@ -3,11 +3,9 @@
 <group name="ListIterator" description="minimal example module">
 
 	<description type="text">
-		Module that can be used as a start for a new module.
-		Simply change all occurrences of "ListIterator" to the name of your new module in
-		ListIterator.cc, MyModule.h and MyModule.ikc (this file), rename the files, and fill
-		in the new code and documentation. This module is located in the
-		UserModules directory.
+		Iterates through a list of numbers whenever SYNC_IN is 1, sets SYNC_OUT to 1 on beginning of every iteration.
+
+		Handy for iterating through given values for experiments
 	</description>
 
 	<example description="A simple example">
