@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<group name="Stock" description="Stock module for system dynamics modeling">
+
+	<description type="text">
+		Stock module as in stock and flow modeling in system dynamics.
+		TODO make able to handle arrays
+	</description>
+
+	<example description="A simple example">
+		<module
+			class="Stock"
+			name="Stock"
+			initial_value = "10"
+			debug = "true"
+		/>
+	</example>
+
+	<parameter name="initial_value" type="float" default="10.0" description="Initial value of the stock" />
+	<parameter name="debug" type="bool" default="false" description="Turns on or off debugmode" />
+
+	<input name="INPUT" description="Input which adds to stock" />
+	<input name="OUT_FLOW_RATE" description="The rate at which the stock diminishes, and how much is output from the stock each tick" />
+
+	<output name="OUTPUT" description="The output flow" size_set="INPUT" />
+	<output name="CURRENT_LEVEL" description="The current level of the stock" size_set="INPUT" />
+
+	<module class="Stock" />
+
+	<view title="Stock">
+	    <object
+	        x="0" y="0" w="2"
+	        class="Plot"
+	        module="*"
+	        source="OUTPUT"
+	        title="OUTPUT"
+	    />
+
+	    <object
+	        x="0" y="1" w="2"
+	        class="Plot"
+	        module="*"
+	        source="CURRENT_LEVEL"
+	        title="Current level"
+	    />
+	</view>
+	
+	<author>
+		<name>Trond Arild Tjöstheim</name>
+		<email>kog13ttj@student.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+		<homepage></homepage>
+	</author>
+
+   <files>
+   		<file>Stock.h</file>
+   		<file>Stock.cc</file>
+   		<file>Stock.ikc</file>
+   </files>
+
+</group>
+

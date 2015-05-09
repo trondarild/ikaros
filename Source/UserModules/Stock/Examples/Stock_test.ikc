@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<group title="Stock Example">
+	<!--Modules-->
+		<module
+			class = "Constant"
+			name = "ConstantFlow"
+			outputsize  = "1"
+			data  = "1"
+		/>
+		<module
+			class = "Constant"
+			name = "InputFlow"
+			outputsize  = "1"
+			data  = "0.8"
+		/>
+		<module
+		  class       =   "FunctionGenerator"
+		  name        =   "SinGen"
+		  type        =   "sin"
+		  frequency  =  "0.01"
+		  offset      =   "1.0"
+		  amplitude   =   "1"
+		  shift       =   "0.0"
+		/>
+
+		<module
+			class = "Stock"
+			name = "ConstantFlowStock"
+			initial_value  = "100"
+			debug = "yes"
+		/>
+		<module
+			class = "Stock"
+			name = "VariableFlowStock"
+			initial_value  = "100"
+			debug = "no"
+		/>
+
+	<!--Connections-->	
+        <connection sourcemodule = "ConstantFlow" source = "OUTPUT" targetmodule = "ConstantFlowStock" target = "OUT_FLOW_RATE" />
+        <connection sourcemodule = "InputFlow" source = "OUTPUT" targetmodule = "ConstantFlowStock" target = "INPUT" />
+
+        <connection sourcemodule = "SinGen" source = "OUTPUT" targetmodule = "VariableFlowStock" target = "OUT_FLOW_RATE" />
+        <connection sourcemodule = "InputFlow" source = "OUTPUT" targetmodule = "VariableFlowStock" target = "INPUT" />
+
+   <!--View-->
+		<view name="View">
+			<object class="Plot " 
+				module="SinGen" 
+				source="OUTPUT" 
+				x="0" y="0" w="2" h="2"
+				min="0"
+				max="2"
+			/>
+			<object class="Plot " 
+				module="ConstantFlowStock" 
+				source="OUTPUT" 
+				x="0" y="2" w="2" h="2"
+				min="0"
+				max="5"
+			/>
+			<object class="Plot " 
+				module="ConstantFlowStock" 
+				source="CURRENT_LEVEL" 
+				x="2" y="2" w="2" h="2"
+				min="0"
+				max="150"
+			/>
+
+			<object class="Plot " 
+				module="VariableFlowStock" 
+				source="OUTPUT" 
+				x="0" y="4" w="2" h="2"
+				min="0"
+				max="5"
+			/>
+			<object class="Plot " 
+				module="VariableFlowStock" 
+				source="CURRENT_LEVEL" 
+				x="2" y="4" w="2" h="2"
+				min="0"
+				max="150"
+			/>
+		</view>
+
+</group>
+ 
