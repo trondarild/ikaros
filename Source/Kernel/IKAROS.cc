@@ -576,7 +576,7 @@ float
 Module::GetFloatValue(const char * n, float d)
 {
     if(d != 0)
-        Notify(msg_warning, "Default value for GetFloatValue(\"%s\") is deprectaed and should be specified in IKC file instead.", n);
+        Notify(msg_warning, "Default value for GetFloatValue(\"%s\") is deprecated and should be specified in IKC file instead.", n);
 
     return string_to_float(GetValue(n), d);
 }
@@ -585,7 +585,7 @@ int
 Module::GetIntValue(const char * n, int d)
 {
     if(d != 0)
-        Notify(msg_warning, "Default value for GetIntValue(\"%s\") is deprectaed and should be specified in IKC file instead.", n);
+        Notify(msg_warning, "Default value for GetIntValue(\"%s\") is deprecated and should be specified in IKC file instead.", n);
     
     if(GetList(n))
         return GetIntValueFromList(n);
@@ -2718,7 +2718,7 @@ Kernel::Notify(int msg, const char * format, ...)
     }
     va_list 	args;
     va_start(args, format);
-    vsnprintf(&message[n], 512, format, args);
+    vsnprintf(&message[n], 512-n, format, args); // Fix #22 (public)
     va_end(args);
     printf("IKAROS: %s", message);
     if(message[strlen(message)-1] != '\n')

@@ -32,9 +32,10 @@ Submatrix::SetSizes()
     int sy	= GetInputSizeY("INPUT");
 
     if(GetIntValue("kernel_size")!=0)
-    {
         kernel_size = GetIntValue("kernel_size");
 
+    if(kernel_size > 0)
+    {
         x0 = (kernel_size-1)/2;
         y0 = (kernel_size-1)/2;
         x1 = sx - (kernel_size-1)/2;
